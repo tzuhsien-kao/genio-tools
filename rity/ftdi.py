@@ -26,7 +26,7 @@ class FtdiControl:
         eeprom.open(device)
 
         # HACKS for bad FTDI-232R devices
-        if eeprom._eeprom[0x07] == 0x00 and device.IdProduct == 0x6001:
+        if eeprom._eeprom[0x07] == 0x00 and device.idProduct == 0x6001:
             self.logger.warning("Bad FTDI type. Assuming FTDI-232R device.")
             eeprom._eeprom[0x06] = 0x00
             eeprom._eeprom[0x07] = 0x06
