@@ -30,6 +30,7 @@ class YoctoImage:
         self.kernel_dtbo_autoload = []
         self.kernel_dtb = None
         self.logger = logging.getLogger('rity')
+        self.groups = []
 
         if args.image:
             self.load_image_by_name(args.path, args.image)
@@ -73,7 +74,8 @@ class YoctoImage:
         with open(f"{self.path}/partitions.json", 'r') as fp:
             data = json.load(fp)
             self.partitions = data['partitions']
-            self.groups = data['groups']
+            if 'groups' in data:
+                self.groups = data['groups']
 
     def init(self, path, name, machine):
         self.name = name
