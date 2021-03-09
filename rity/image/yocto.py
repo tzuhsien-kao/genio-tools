@@ -87,7 +87,8 @@ class YoctoImage:
             self.distro_version = data['DISTRO_VERSION']
             self.distro_codename = data['DISTRO_CODENAME']
             self.machine = data['MACHINE']
-            self.kernel_dtbo = data['KERNEL_DEVICETREE_OVERLAYS'].split()
+            if 'KERNEL_DEVICETREE_OVERLAYS' in data:
+                self.kernel_dtbo = data['KERNEL_DEVICETREE_OVERLAYS'].split()
             self.kernel_dtb = data['KERNEL_DEVICETREE']
 
         self.load_partitions()
