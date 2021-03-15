@@ -31,7 +31,7 @@ class Config:
             "In order for your host machine to be able to talk to the board "
             "through USB without needing root privileges, you need to create "
             "a udev rules that will grant user access to your device:\n"
-            """\t$ echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="0e8d", ATTR{idProduct}=="201c", MODE="0660", TAG+="uaccess"\\nSUBSYSTEM=="usb", ATTR{idVendor}=="0403", MODE="0660", TAG+="uaccess"' | sudo tee -a """ + Config.UDEV_FILEPATH + "\n"
+            """\t$ echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="0e8d", ATTR{idProduct}=="201c", MODE="0660", TAG+="uaccess"\\nSUBSYSTEM=="usb", ATTR{idVendor}=="0403", MODE="0660",  TAG+="uaccess"\\nSUBSYSTEM=="gpio", MODE="0660", TAG+="uaccess"' | sudo tee -a """ + Config.UDEV_FILEPATH + "\n"
             "\t$ sudo udevadm control --reload-rules\n"
             "\t$ sudo udevadm trigger")
 
