@@ -125,9 +125,12 @@ class YoctoImage:
                             f"{self.path}/u-boot-initial-env")
         if len(self.kernel_dtbo_autoload) > 0:
             boot_conf = f"#conf@{self.kernel_dtb.replace('/', '_')}"
+            list_dtbo = ""
             for dtbo in self.kernel_dtbo_autoload:
                 boot_conf += f"#conf@{dtbo}"
+                list_dtbo += f"${dtbo} "
             env.update('boot_conf', boot_conf)
+            env.update('list_dtbo', list_dtbo)
         env.write_binary(f"{self.path}/u-boot-env.bin")
 
     def load_env_file(self, env_file):
