@@ -77,6 +77,10 @@ class YoctoImage:
             if 'groups' in data:
                 self.groups = data['groups']
 
+    def load_dtbos(self):
+        dtbos = list(Path(self.path).glob("devicetree/*.dtbo"))
+        self.kernel_dtbo = list(map(lambda dtbo: dtbo.name, dtbos))
+
     def init(self, path, name, machine):
         self.name = name
         self.machine = machine
@@ -89,10 +93,9 @@ class YoctoImage:
             self.distro_version = data['DISTRO_VERSION']
             self.distro_codename = data['DISTRO_CODENAME']
             self.machine = data['MACHINE']
-            if 'KERNEL_DEVICETREE_OVERLAYS' in data:
-                self.kernel_dtbo = data['KERNEL_DEVICETREE_OVERLAYS'].split()
             self.kernel_dtb = data['KERNEL_DEVICETREE']
 
+        self.load_dtbos()
         self.load_partitions()
         for partition in self.partitions:
             if not self.partitions[partition]:
