@@ -23,9 +23,33 @@ RITY tools is composed of 4 tools:
 Prerequisites
 -------------
 
+Linux
+=====
+
 In order to install the RITY tools you must have `python3` and `pip`
 installed on your system. Please refer to your distribution documentation
 to check on to install these two packages.
+
+Windows
+=======
+
+In order to install the RITY tools you must have `python3` and `pip`
+installed on your system. You can install them by downloading `python3`
+from https://www.python.org/downloads/.
+
+.. note::
+
+	Make sure to check the "Add Python 3.X to PATH" in order to be able
+	to access the RITY tools from any directory. If you installed Python
+	from the Windows Store, you will need to manually add Python's Scripts
+	to the PATH variable.
+
+RITY tools are using fastboot to flash, so you also need to install the
+fastboot driver and the fastboot executable. Please follow the following
+guides to install the fastboot platform-tools and the fastboot driver:
+
+* https://developer.android.com/studio/releases/platform-tools
+* https://developer.android.com/studio/run/win-usb
 
 Installation
 ------------
@@ -43,6 +67,10 @@ This section will describe the usage of every RITY tool.
 
 rity-board
 ~~~~~~~~~~
+
+.. warning::
+
+	This tool is currently only supported on Linux
 
 This tool is used to control MediaTek boards. It uses the `FTDI`_ chip that
 provides the serial console to also control the reset / power / download
@@ -277,3 +305,7 @@ board using the following command:
 	rity-flash --gpio-power <power_gpio> \
 	             --gpio-reset <reset_gpio> \
 	             --gpio-download <download_gpio>
+
+.. warning::
+
+	Board control is currently only supported on Linux

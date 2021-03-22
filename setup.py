@@ -21,11 +21,12 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://gitlab.com/baylibre/rich-iot/tools/rity-tools",
     packages=setuptools.find_packages(),
-    scripts=[
-        'tools/rity-board',
-        'tools/rity-config',
-        'tools/rity-flash',
-    ],
+    entry_points={
+        'console_scripts': [
+            'rity-config=rity.config:main',
+            'rity-flash=rity.flash:main',
+            'rity-board=rity.board:main',
+        ]},
     install_requires=[
         'aiot-bootrom @ git+https://gitlab.com/mediatek/aiot/bsp/aiot-bootrom#aiot_bootrom',
         'gpiod',

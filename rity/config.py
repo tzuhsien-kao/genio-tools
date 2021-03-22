@@ -6,17 +6,23 @@ from pathlib import Path
 from shutil import which
 import hashlib
 import platform
-import os
-import pwd
-import grp
+
+import rity
 
 def print_check(description, status, instructions=None, extra_info=""):
     if status:
-        status_str = "\033[92mOK\033[0m"
+        status_str = "OK"
+        if platform.system() != "Windows":
+            status_str = f"\033[92m{status_str}\033[0m"
     else:
-        status_str = "\033[91mFAIL\033[0m"
+        status_str = "FAIL"
+        if platform.system() != "Windows":
+            status_str = f"\033[91m{status_str}\033[0m"
 
-    print(f"\033[1m{description}: {status_str}\033[0m {extra_info}")
+    info = f"{description}: {status_str}"
+    if platform.system() != "Windows":
+        info = f"\033[1m{info}\033[0m"
+    print(f"{info} {extra_info}")
     if not status and instructions:
         print(f"{instructions}")
 
@@ -58,3 +64,16 @@ SUBSYSTEM=="gpio", MODE="0660", TAG+="uaccess"
             "\thttps://developer.android.com/studio/releases/platform-tools")
         if platform.system() == 'Linux':
             self.check_udev_rules()
+
+app_description = """
+    RITY configuration tool
+
+    This tool is used to check the environment of the host machine.
+"""
+
+def main():
+    app = rity.App(description=app_description)
+    app.execute()
+
+    config = rity.Config()
+    config.check()

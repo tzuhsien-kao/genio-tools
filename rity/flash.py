@@ -2,10 +2,15 @@
 # Copyright 2020 (c) BayLibre, SAS
 # Author: Fabien Parent <fparent@baylibre.com>
 
+import errno
 import logging
+import subprocess
+import sys
 import pathlib
+import platform
 
 import rity
+import rity.image
 
 class Flash:
     def __init__(self, image, dry_run=False):
@@ -62,3 +67,93 @@ class Flash:
             self.logger.error(f"target '{target}' does not exists")
 #            list targets here
         self.fastboot.reboot()
+
+images = {
+    'Yocto': rity.image.YoctoImage,
+    'Android': rity.image.AndroidImage,
+}
+
+app_description = """
+    RITY flashing tool
+
+    This tool is used to flash images.
+"""
+
+class FlashTool(rity.App):
+    def __init__(self):
+        rity.App.__init__(self, description=app_description)
+        self.setup_parser()
+
+    def setup_parser(self):
+        self.parser.add_argument('targets', type=str, nargs='*',
+            help='Name of the partition or group of partition to flash')
+        self.parser.add_argument('-P', '--path', type=str, help='Path to image',
+            default=".")
+        self.parser.add_argument('--dry-run', action="store_true")
+
+        group = self.parser.add_argument_group('Bootstrap')
+        group.add_argument('--skip-bootstrap', action="store_true",
+            help="Don't bootstrap the board")
+        group.add_argument('--bootstrap', type=str, default='lk.bin',
+            metavar='lk.bin',
+            help='bootstrap binary used for flashing (default: lk.bin)')
+        group.add_argument('--bootstrap-addr', type=int, default=0x201000,
+            metavar='0x201000',
+            help='Address where the bootstrap binary will be loaded (default: 0x201000)')
+        group.add_argument('--bootstrap-mode', type=str, default='aarch64',
+                           choices=['aarch64', 'aarch32'])
+
+        if platform.system() == 'Linux':
+            group = self.parser.add_argument_group('Board Control (using libgpiod)')
+            group.add_argument('-c', '--gpio-chip', type=int, help='GPIOChip device')
+            group.add_argument('-r', '--gpio-reset', type=int, default=1,
+                help='GPIO to use to reset the SoC')
+            group.add_argument('-d', '--gpio-download', type=int, default=2,
+                help='GPIO to use to put the SoC in download mode (KPCOL0 pin)')
+            group.add_argument('-p', '--gpio-power', type=int, default=0,
+                help='GPIO to use to power on the SoC')
+
+        for name, image in images.items():
+            image_group = self.parser.add_argument_group(name)
+            image.setup_parser(image_group)
+
+    def execute(self):
+        image = None
+        chip = None
+
+        args = super().execute()
+
+        for name, img in images.items():
+            if img.detect(args.path):
+                image = img(args)
+                break
+
+        if image is None:
+            self.logger.error("No image found")
+            return
+
+        print(image)
+
+        if not args.dry_run and platform.system() == 'Linux':
+            try:
+                board = rity.BoardControl(args.gpio_reset, args.gpio_download,
+                                          args.gpio_power, args.gpio_chip)
+                board.download_mode_boot()
+            except Exception as e:
+                self.logger.warning(str(e))
+
+        if not args.skip_bootstrap and not args.dry_run:
+            bootrom_app = [
+                'aiot-bootrom',
+                '--bootstrap', args.path + '/' + args.bootstrap,
+                '--bootstrap-addr', hex(args.bootstrap_addr),
+                '--bootstrap-mode', args.bootstrap_mode,
+            ]
+            subprocess.run(bootrom_app, check=True)
+
+        flasher = rity.Flash(image, dry_run=args.dry_run)
+        flasher.flash(args.targets)
+
+def main():
+    tool = FlashTool()
+    tool.execute()
