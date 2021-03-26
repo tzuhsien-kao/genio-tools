@@ -8,6 +8,8 @@ run:
   artifacts:
     paths:
       - dist/*.whl
+  only:
+  - master
 
 build_pages:
   stage: build
