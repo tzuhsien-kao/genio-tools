@@ -142,6 +142,13 @@ class YoctoImage:
             machine = config['config']['MACHINE'].strip('"')
             return (name, machine)
 
+    def load_testdata_file(self, testdata_file):
+        with open(testdata_file, 'r') as fp:
+            data = json.load(fp)
+            name = data['PN']
+            machine = data['MACHINE']
+            return (name, machine)
+
     def load_image_by_name(self, path, name):
         image = Path(path) / f"{name}.env"
 
@@ -154,22 +161,30 @@ class YoctoImage:
 
     def load_image(self, path):
         image_files = list(Path(path).glob("*.env"))
-        images = []
+        images = set()
 
-        for env_file in image_files:
-            image = self.load_env_file(env_file)
-            images.append(image)
+        if len(image_files) > 0:
+            for env_file in image_files:
+                image = self.load_env_file(env_file)
+                images.add(image)
+        else:
+            image_files = list(Path(path).glob("*.testdata.json"))
+            for test_data_file in image_files:
+                image = self.load_testdata_file(test_data_file)
+                images.add(image)
+
+        images = list(images)
 
         if len(images) == 0:
             self.logger.error(f"Could not find any Yocto images in directory '{path}'")
             sys.exit(-errno.ENOENT)
         elif len(images) == 1:
-            image = images[0]
+            image = images.pop()
         else:
             while True:
                 print("Images found:")
-                for i in range(len(images)):
-                    print(f"\t[{i}] {images[i][0]}")
+                for i,image in enumerate(images):
+                    print(f"\t[{i}] {image[0]}")
 
                 try:
                     choice = input("Choice: ")
