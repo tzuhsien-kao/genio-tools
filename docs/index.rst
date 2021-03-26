@@ -160,7 +160,6 @@ configured:
 	 $rity-config
 	 fastboot: OK
 	 udev rules: OK
-	 plugdev group: OK
 
 In case your environment is not setup correctly, the tool will give you some
 instructions on how to correctly configure it.
