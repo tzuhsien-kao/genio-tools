@@ -128,7 +128,7 @@ class YoctoImage:
             list_dtbo = ""
             for dtbo in self.kernel_dtbo_autoload:
                 boot_conf += f"#conf@{dtbo}"
-                list_dtbo += f"${dtbo} "
+                list_dtbo += f"{dtbo} "
             env.update('boot_conf', boot_conf)
             env.update('list_dtbo', list_dtbo)
         env.write_binary(f"{self.path}/u-boot-env.bin")
