@@ -6,7 +6,7 @@ Overview
 
 RITY tools is a set of tools to configure or interact with MediaTek boards.
 The RITY tools are written in `Python`_. You need to have Python 3 installed on
-your system. The RITY tools have been tested with Python >= 3.8, they may work
+your system. The RITY tools have been tested with Python >= 3.6, they may work
 with older versions of Python, but are untested against these older Python
 releases.
 
