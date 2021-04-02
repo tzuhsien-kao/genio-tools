@@ -10,6 +10,7 @@ from rity.config import Config
 from rity.fastboot import Fastboot
 from rity.flash import Flash
 from rity.ubootenv import UBootEnv
+from rity.version import version
 
 if platform.system() == 'Linux':
     from rity.board import BoardControl

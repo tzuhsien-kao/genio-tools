@@ -10,6 +10,7 @@ import errno
 import json
 import logging
 import os
+import packaging.version
 import struct
 import sys
 
@@ -70,12 +71,32 @@ class YoctoImage:
                     pass
         print()
 
-    def load_partitions(self):
-        with open(f"{self.path}/partitions.json", 'r') as fp:
+    def load_config(self):
+        config_file = f"{self.path}/"
+        if os.path.exists(config_file + "rity.json"):
+            config_file += "rity.json"
+        else:
+            config_file += "partitions.json"
+
+        with open(config_file, 'r') as fp:
             data = json.load(fp)
+            self.tools_cfg = data.get('rity-tools', None)
             self.partitions = data['partitions']
             if 'groups' in data:
                 self.groups = data['groups']
+
+    def check_min_version(self):
+        if not self.tools_cfg or not 'min-version' in self.tools_cfg:
+            return
+
+        min_version = self.tools_cfg['min-version']
+
+        if packaging.version.parse(min_version) > \
+           packaging.version.parse(rity.version):
+            self.logger.error("Your installation of RITY tools is too old. "
+                f"Please upgrade to version {min_version} or "
+                "higher")
+            sys.exit(-errno.ENOENT)
 
     def load_dtbos(self):
         dtbos = list(Path(self.path).glob("devicetree/*.dtbo"))
@@ -95,8 +116,11 @@ class YoctoImage:
             self.machine = data['MACHINE']
             self.kernel_dtb = data['KERNEL_DEVICETREE']
 
+
         self.load_dtbos()
-        self.load_partitions()
+        self.load_config()
+        self.check_min_version()
+
         for partition in self.partitions:
             if not self.partitions[partition]:
                 self.partitions[partition] = f"{name}-{machine}.ext4"
@@ -228,7 +252,8 @@ class YoctoImage:
 
 
     def __str__(self):
-        return f"""Yocto Image:
+        return f"""RITY Tools: v{rity.version}
+Yocto Image:
 \tname:     {self.description} ({self.name})
 \tdistro:   {self.distro_name} {self.distro_version} ({self.distro})
 \tcodename: {self.distro_codename}
