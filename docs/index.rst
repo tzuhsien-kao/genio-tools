@@ -1,8 +1,8 @@
 RITY tools manual
-=================
+#################
 
 Overview
---------
+********
 
 RITY tools is a set of tools to configure or interact with MediaTek boards.
 The RITY tools are written in `Python`_. You need to have Python 3 installed on
@@ -21,7 +21,7 @@ RITY tools is composed of 4 tools:
 	* rity-flash: tool to flash a board with a RITY or RITA image
 
 Prerequisites
--------------
+*************
 
 Linux
 =====
@@ -52,7 +52,7 @@ guides to install the fastboot platform-tools and the fastboot driver:
 * https://developer.android.com/studio/run/win-usb
 
 Installation
-------------
+************
 
 To install `rity-tools` and its dependencies please run the following command:
 
@@ -61,12 +61,12 @@ To install `rity-tools` and its dependencies please run the following command:
 	pip3 install -U -e "git+https://gitlab.com/baylibre/rich-iot/tools/rity-tools.git#egg=rity-tools"
 
 Tools
------
+*****
 
 This section will describe the usage of every RITY tool.
 
 rity-board
-~~~~~~~~~~
+==========
 
 .. warning::
 
@@ -84,7 +84,7 @@ GPIO lines.
 .. _FTDI: https://www.ftdichip.com/
 
 Configuration of the FTDI chip
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------
 
 In order to be able to control the GPIO lines, the FTDI chip must be properly
 configured. Run the following command to configure the FTDI chip:
@@ -124,7 +124,7 @@ For example for the `i500-pumpkin` board, the command would be:
 Configuring the FTDI chip should only be done once per board.
 
 Reset the board
-^^^^^^^^^^^^^^^
+---------------
 
 In order to reset the board you can run the following command:
 
@@ -135,7 +135,7 @@ In order to reset the board you can run the following command:
 	                   --gpio-download <download_gpio>
 
 Reset in download mode
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 In order to reset the board and boot it in download mode you can run the
 following command:
@@ -147,7 +147,7 @@ following command:
 	                      --gpio-download <download_gpio>
 
 Power the board
-^^^^^^^^^^^^^^^
+---------------
 
 To similate pressing the power button (for 1 second), you can run the following
 command:
@@ -159,7 +159,7 @@ command:
 	                   --gpio-download <download_gpio>
 
 Default values for the GPIOs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
 It is not necessary to set the `--gpio-power`, `--gpio-reset`,
 and `--gpio-download` parameters if they match the default values. Please
@@ -176,7 +176,7 @@ check the default values used by the tool below:
 +-----------------+-----------------+---------------+
 
 rity-config
-~~~~~~~~~~~
+===========
 
 This tool is used to check the configuration of the host environment.
 
@@ -193,7 +193,7 @@ In case your environment is not setup correctly, the tool will give you some
 instructions on how to correctly configure it.
 
 rity-flash
-~~~~~~~~~~
+==========
 
 This tool allows you to flash your board. `rity-flash` supports flashing
 Yocto images (RITY), and Android images (RITA).
@@ -213,10 +213,10 @@ parameter:
 	rity-flash --path /path/to/image
 
 Yocto images
-^^^^^^^^^^^^
+------------
 
 Select an image
-'''''''''''''''
+^^^^^^^^^^^^^^^
 
 A few options are specific to flashing Yocto images. If your build folder
 contains more than one image you can specify which image to flash by
@@ -271,7 +271,7 @@ or
 
 
 Android images
-^^^^^^^^^^^^^^
+--------------
 
 When flashing an Android image you can select the DTBO by using the following
 command:
@@ -283,7 +283,7 @@ command:
 Please check your RITA board documentation to check the available DTBO indexes.
 
 Bootstrap configuration
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 In case your bootstrap has a configuration different from the default values,
 you can use the following parameter:
@@ -294,7 +294,7 @@ you can use the following parameter:
 	             --bootstrap-mode aarch64
 
 Board control
-^^^^^^^^^^^^^
+-------------
 
 If your board supports `rity-board`, `rity-flash` will also be able to
 control the reset and download GPIOs. You can flash and control your
