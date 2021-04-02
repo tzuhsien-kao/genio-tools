@@ -17,9 +17,7 @@ build_pages:
   - pip install -U sphinx sphinx-rtd-theme sphinx-prompt
   - sphinx-build -b html docs public
   only:
-  - branches
-  except:
-  - master
+  - merge_requests
 
 pages:
   stage: deploy
