@@ -185,7 +185,7 @@ configured:
 
 .. prompt:: bash $ auto
 
-	 $rity-config
+	 $ rity-config
 	 fastboot: OK
 	 udev rules: OK
 
