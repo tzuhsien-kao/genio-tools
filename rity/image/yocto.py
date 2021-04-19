@@ -221,7 +221,7 @@ class YoctoImage:
             help = 'Size of the U-Boot environment storage')
         parser.add_argument('-I', '--interactive', action="store_true",
             help='Interactively select what will be flashed')
-        parser.add_argument('--load-dtbo', action="extend", nargs="+", type=str,
+        parser.add_argument('--load-dtbo', action="append", type=str,
             help='Name of the dtbo to load')
         parser.add_argument('--list-dtbo', action="store_true",
             help='Show the list of available DTBO')
