@@ -53,7 +53,7 @@ SUBSYSTEM=="gpio", MODE="0660", TAG+="uaccess"
             "In order for your host machine to be able to talk to the board "
             "through USB without needing root privileges, you need to create "
             "a udev rules that will grant user access to your device:\n"
-            "\t$ echo '" + Config.UDEV_RULES + "' | sudo tee " + Config.UDEV_FILEPATH + "\n"
+            "\t$ echo -n '" + Config.UDEV_RULES + "' | sudo tee " + Config.UDEV_FILEPATH + "\n"
             "\t$ sudo udevadm control --reload-rules\n"
             "\t$ sudo udevadm trigger", f"(md5: {rules_md5_real.hexdigest()})")
 
