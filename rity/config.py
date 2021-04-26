@@ -41,13 +41,16 @@ SUBSYSTEM=="gpio", MODE="0660", TAG+="uaccess"
         mtk_rules = Path(Config.UDEV_FILEPATH)
         rules_md5_reference = hashlib.md5(str.encode(Config.UDEV_RULES))
         rules_md5_real = None
+        rules_md5 = None
+        md5_match = False
 
         if mtk_rules.exists():
             with open(Config.UDEV_FILEPATH) as fp:
                 rules_md5_real = hashlib.md5(str.encode(fp.read()))
 
-        md5_match = rules_md5_real.hexdigest() == \
-                        rules_md5_reference.hexdigest()
+            rules_md5 = rules_md5_real.hexdigest()
+
+        md5_match = rules_md5 == rules_md5_reference.hexdigest()
 
         print_check('udev rules', md5_match,
             "In order for your host machine to be able to talk to the board "
@@ -55,7 +58,7 @@ SUBSYSTEM=="gpio", MODE="0660", TAG+="uaccess"
             "a udev rules that will grant user access to your device:\n"
             "\t$ echo -n '" + Config.UDEV_RULES + "' | sudo tee " + Config.UDEV_FILEPATH + "\n"
             "\t$ sudo udevadm control --reload-rules\n"
-            "\t$ sudo udevadm trigger", f"(md5: {rules_md5_real.hexdigest()})")
+            "\t$ sudo udevadm trigger", f"(md5: {rules_md5})")
 
     def check(self):
         print_check('fastboot', which('fastboot'),
