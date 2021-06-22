@@ -78,7 +78,7 @@ GPIO lines.
 
 .. note::
 
-	Not all the boards can be controller with this tool. Please check your
+	Not all the boards can be controlled with this tool. Please check your
 	board documentation to know whether this tools can control your board.
 
 .. _FTDI: https://www.ftdichip.com/
@@ -149,7 +149,7 @@ following command:
 Power the board
 ---------------
 
-To similate pressing the power button (for 1 second), you can run the following
+To simulate pressing the power button (for 1 second), you can run the following
 command:
 
 .. prompt:: bash $
