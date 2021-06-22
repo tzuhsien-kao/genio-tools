@@ -30,6 +30,7 @@ setuptools.setup(
         'aiot-bootrom @ git+https://gitlab.com/mediatek/aiot/bsp/aiot-bootrom#aiot_bootrom',
         'gpiod',
         'oyaml',
+        'packaging',
         'pyftdi',
         'pyusb',
     ],
