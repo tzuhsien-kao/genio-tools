@@ -148,10 +148,10 @@ class YoctoImage:
         env = rity.UBootEnv(self.args.uboot_env_size,
                             f"{self.path}/u-boot-initial-env")
         if len(self.kernel_dtbo_autoload) > 0:
-            boot_conf = f"#conf@{self.kernel_dtb.replace('/', '_')}"
+            boot_conf = f"#conf-{self.kernel_dtb.replace('/', '_')}"
             list_dtbo = ""
             for dtbo in self.kernel_dtbo_autoload:
-                boot_conf += f"#conf@{dtbo}"
+                boot_conf += f"#conf-{dtbo}"
                 list_dtbo += f"{dtbo} "
             env.update('boot_conf', boot_conf)
             env.update('list_dtbo', list_dtbo)
