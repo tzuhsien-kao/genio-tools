@@ -27,7 +27,7 @@ def print_check(description, status, instructions=None, extra_info=""):
         print(f"{instructions}")
 
 class Config:
-    UDEV_FILEPATH = '/etc/udev/rules.d/96-rity.rules'
+    UDEV_FILEPATH = '/etc/udev/rules.d/72-rity.rules'
     UDEV_RULES = """
 SUBSYSTEM=="usb", ATTR{idVendor}=="0e8d", ATTR{idProduct}=="201c", MODE="0660", TAG+="uaccess"
 SUBSYSTEM=="usb", ATTR{idVendor}=="0403", MODE="0660", TAG+="uaccess"
