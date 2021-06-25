@@ -19,6 +19,12 @@ class Flash:
         self.logger = logging.getLogger('rity')
 
     def flash_partition(self, partition, filename):
+        def has_method(obj, method):
+            return callable(getattr(obj, method, None))
+
+        if has_method(self.img, 'generate_file'):
+            self.img.generate_file(partition, filename)
+
         path = pathlib.Path(self.img.path) / filename
         self.fastboot.flash(partition, str(path))
 

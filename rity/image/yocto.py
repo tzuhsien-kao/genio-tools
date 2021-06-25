@@ -12,6 +12,7 @@ import logging
 import os
 import packaging.version
 import struct
+import subprocess
 import sys
 
 import rity
@@ -49,8 +50,12 @@ class YoctoImage:
         if args.interactive:
             self.run_interactive_mode()
 
-        self.generate_uboot_env()
-        self.generate_partition_table()
+    def generate_file(self, partition, filename):
+        if partition == 'mmc0':
+            self.generate_partition_table()
+            self.generate_sparse_image()
+        elif partition == 'mmc0boot1':
+            self.generate_uboot_env()
 
     def run_interactive_mode(self):
         for dtbo in self.kernel_dtbo:
@@ -123,7 +128,10 @@ class YoctoImage:
 
         for partition in self.partitions:
             if not self.partitions[partition]:
-                self.partitions[partition] = f"{name}-{machine}.ext4"
+                if partition == "rootfs":
+                    self.partitions[partition] = f"{name}-{machine}.ext4"
+                elif partition == "mmc0":
+                    self.partitions[partition] = f"{name}-{machine}.img"
 
     def generate_partition_table(self):
         wic_image = f"{self.path}/{self.name}-{self.machine}.wic"
@@ -143,6 +151,24 @@ class YoctoImage:
                 hdr_crc32 = binascii.crc32(mbr.read(92))
                 mbr.seek(528)
                 mbr.write(struct.pack("<I", hdr_crc32))
+
+    def generate_sparse_image(self):
+        wic_image = f"{self.path}/{self.name}-{self.machine}.wic"
+        sparse_image = f"{self.path}/{self.name}-{self.machine}.img"
+        block_size = 4096
+
+        if not os.path.exists(wic_image):
+            return
+
+        # Equivalent to `truncate -s%4096` but always works on Windows.
+        with open(wic_image, 'rb+') as wic:
+            wic.seek(0, 2)
+            size = wic.tell()
+            if size % block_size:
+                wic.write(bytearray(block_size - (size % block_size)))
+
+        subprocess.run(["img2simg", "-o", sparse_image, wic_image],
+                       check=True)
 
     def generate_uboot_env(self):
         env = rity.UBootEnv(self.args.uboot_env_size,
