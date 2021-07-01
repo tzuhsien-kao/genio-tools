@@ -46,6 +46,9 @@ class AndroidImage:
         env = rity.UBootEnv(8192, f"{self.path}/u-boot-initial-env")
         if self.args.dtbo_index:
             env.update("dtbo_index", self.args.dtbo_index)
+        if self.args.serialno:
+            env.update("serial#", self.args.serialno)
+
         env.write_binary(f"{self.path}/u-boot-env.bin")
 
     @classmethod
@@ -57,6 +60,9 @@ class AndroidImage:
     def setup_parser(cls, parser):
         parser.add_argument('--dtbo-index', type=str, \
             help='Enable one or multiple DTBO(s)')
+
+        parser.add_argument('--serialno', type=str, \
+            help='Customize serial number used by adb/fastboot')
 
     def __str__(self):
         return f"""Android Image:
