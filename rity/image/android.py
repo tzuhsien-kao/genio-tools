@@ -56,7 +56,8 @@ class AndroidImage:
 
     @classmethod
     def setup_parser(cls, parser):
-        parser.add_argument('--dtbo-index', type=str, help='Enable a DTBO')
+        parser.add_argument('--dtbo-index', type=str, \
+            help='Enable one or multiple DTBO(s)')
 
     def __str__(self):
         return f"""Android Image:
