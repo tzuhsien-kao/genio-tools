@@ -43,7 +43,7 @@ class AndroidImage:
         self.generate_uboot_env()
 
     def generate_uboot_env(self):
-        env = rity.UBootEnv(4096, f"{self.path}/u-boot-initial-env")
+        env = rity.UBootEnv(8192, f"{self.path}/u-boot-initial-env")
         if self.args.dtbo_index:
             env.update("dtbo_index", self.args.dtbo_index)
         env.write_binary(f"{self.path}/u-boot-env.bin")
