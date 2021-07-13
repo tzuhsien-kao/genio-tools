@@ -212,6 +212,18 @@ parameter:
 
 	rity-flash --path /path/to/image
 
+It is possible to flash invidual partitions by using:
+
+.. prompt:: bash $
+
+	rity-flash <partition1> <partition2> <partitionX>
+
+or
+
+.. prompt:: bash $
+
+	rity-flash <partition1>:/path/to/file1 <partition2>:/path/to/file2
+
 Yocto images
 ------------
 
