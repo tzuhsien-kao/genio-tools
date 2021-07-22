@@ -32,7 +32,6 @@ class FtdiControl:
             eeprom._eeprom[0x07] = 0x06
             eeprom._decode_eeprom()
 
-        eeprom.set_product_name("rity_" + product_name)
         eeprom.set_property(f"cbus_func_{power_gpio}", "GPIO")
         eeprom.set_property(f"cbus_func_{reset_gpio}", "GPIO")
         eeprom.set_property(f"cbus_func_{download_gpio}", "GPIO")
