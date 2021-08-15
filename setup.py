@@ -28,7 +28,7 @@ setuptools.setup(
         ]},
     install_requires=[
         'aiot-bootrom @ git+https://gitlab.com/mediatek/aiot/bsp/aiot-bootrom#aiot_bootrom',
-        'gpiod',
+        'gpiod==1.4.0',
         'oyaml',
         'packaging',
         'pyftdi',
