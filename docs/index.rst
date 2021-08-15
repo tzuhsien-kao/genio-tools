@@ -23,19 +23,34 @@ RITY tools is composed of 4 tools:
 Prerequisites
 *************
 
+In order to install the RITY tools you must have `python3 >= 3.6` and
+`pip3 >= 20.3` installed on your system. You can check their versions
+by running the following commands:
+
+.. prompt:: bash $ auto
+
+	$ python3 --version
+	Python 3.9.2
+	$ pip3 --version
+	pip 21.2.4 from /usr/bin/pip3 (python 3.9)
+
+If your version of `pip3` is older than 20.3. Please upgrade it by running:
+
+.. prompt:: bash $
+
+	pip3 install --upgrade pip
+
 Linux
 =====
 
-In order to install the RITY tools you must have `python3` and `pip`
-installed on your system. Please refer to your distribution documentation
-to check on to install these two packages.
+Please refer to your Linux distribution documentation in order to check
+how to install `python3` and `pip3`.
+
 
 Windows
 =======
 
-In order to install the RITY tools you must have `python3` and `pip`
-installed on your system. You can install them by downloading `python3`
-from https://www.python.org/downloads/.
+You can install `python3` and `pip3` from https://www.python.org/downloads/.
 
 .. note::
 
