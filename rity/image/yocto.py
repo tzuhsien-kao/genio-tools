@@ -167,8 +167,8 @@ class YoctoImage:
             if size % block_size:
                 wic.write(bytearray(block_size - (size % block_size)))
 
-        subprocess.run(["img2simg", "-o", sparse_image, wic_image],
-                       check=True)
+        subprocess.run([sys.executable, "-m", "pysimg", "-o", sparse_image,
+                       wic_image], check=True)
 
     def generate_uboot_env(self):
         env = rity.UBootEnv(self.args.uboot_env_size,
