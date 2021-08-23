@@ -9,7 +9,7 @@ run:
     paths:
       - dist/*.whl
   only:
-  - master
+  - main
 
 build_pages:
   stage: build
@@ -28,4 +28,4 @@ pages:
     paths:
     - public
   only:
-  - master
+  - main
