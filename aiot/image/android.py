@@ -6,7 +6,7 @@ from pathlib import Path
 import configparser
 import oyaml
 
-import rity
+import aiot
 
 class AndroidImage:
     def __init__(self, args):
@@ -43,7 +43,7 @@ class AndroidImage:
         self.generate_uboot_env()
 
     def generate_uboot_env(self):
-        env = rity.UBootEnv(8192, f"{self.path}/u-boot-initial-env")
+        env = aiot.UBootEnv(8192, f"{self.path}/u-boot-initial-env")
         if self.args.dtbo_index:
             env.update("dtbo_index", self.args.dtbo_index)
         if self.args.serialno:

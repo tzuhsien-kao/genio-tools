@@ -7,13 +7,13 @@ import logging
 import sys
 import textwrap
 
-import rity
+import aiot
 
 class App: # pylint: disable=too-few-public-methods
-    """ Common code for RITY tools"""
+    """ Common code for AIoT tools"""
 
-    def __init__(self, description="RITY tool"):
-        self.logger = logging.getLogger('rity')
+    def __init__(self, description="AIoT tool"):
+        self.logger = logging.getLogger('aiot')
         self.parser = argparse.ArgumentParser(
             description=textwrap.dedent(description),
             formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -29,7 +29,7 @@ class App: # pylint: disable=too-few-public-methods
         args = self.parser.parse_args()
 
         if args.version:
-            print(rity.version)
+            print(aiot.version)
             sys.exit(0)
 
         if args.verbose:

@@ -8,7 +8,7 @@ import usb
 
 class FtdiControl:
     def __init__(self):
-        self.logger = logging.getLogger('rity')
+        self.logger = logging.getLogger('aiot')
 
     def find_device(self):
         dev = list(usb.core.find(find_all=True, idVendor=0x0403))

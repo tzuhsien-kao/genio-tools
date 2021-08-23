@@ -15,7 +15,7 @@ import struct
 import subprocess
 import sys
 
-import rity
+import aiot
 
 class YoctoImage:
     def __init__(self, args):
@@ -31,7 +31,7 @@ class YoctoImage:
         self.kernel_dtbo = None
         self.kernel_dtbo_autoload = []
         self.kernel_dtb = None
-        self.logger = logging.getLogger('rity')
+        self.logger = logging.getLogger('aiot')
         self.groups = []
 
         if args.image:
@@ -97,8 +97,8 @@ class YoctoImage:
         min_version = self.tools_cfg['min-version']
 
         if packaging.version.parse(min_version) > \
-           packaging.version.parse(rity.version):
-            self.logger.error("Your installation of RITY tools is too old. "
+           packaging.version.parse(aiot.version):
+            self.logger.error("Your installation of AIoT tools is too old. "
                 f"Please upgrade to version {min_version} or "
                 "higher")
             sys.exit(-errno.ENOENT)
@@ -171,7 +171,7 @@ class YoctoImage:
                        wic_image], check=True)
 
     def generate_uboot_env(self):
-        env = rity.UBootEnv(self.args.uboot_env_size,
+        env = aiot.UBootEnv(self.args.uboot_env_size,
                             f"{self.path}/u-boot-initial-env")
         if len(self.kernel_dtbo_autoload) > 0:
             boot_conf = f"#conf-{self.kernel_dtb.replace('/', '_')}"
@@ -278,7 +278,7 @@ class YoctoImage:
 
 
     def __str__(self):
-        return f"""RITY Tools: v{rity.version}
+        return f"""AIoT Tools: v{aiot.version}
 Yocto Image:
 \tname:     {self.description} ({self.name})
 \tdistro:   {self.distro_name} {self.distro_version} ({self.distro})

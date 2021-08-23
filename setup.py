@@ -8,23 +8,23 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="rity-tools",
+    name="aiot-tools",
     use_scm_version={
-        'write_to': 'rity/version.py',
+        'write_to': 'aiot/version.py',
     },
     setup_requires = ['setuptools_scm'],
     author="Fabien Parent",
     author_email="fparent@baylibre.com",
-    description="RITY tools",
+    description="aiot tools",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitlab.com/baylibre/rich-iot/tools/rity-tools",
+    url="https://gitlab.com/mediatek/aiot/bsp/aiot-tools",
     packages=setuptools.find_packages(),
     entry_points={
         'console_scripts': [
-            'rity-config=rity.config:main',
-            'rity-flash=rity.flash:main',
-            'rity-board=rity.board:main',
+            'aiot-config=aiot.config:main',
+            'aiot-flash=aiot.flash:main',
+            'aiot-board=aiot.board:main',
         ]},
     install_requires=[
         'aiot-bootrom @ git+https://gitlab.com/mediatek/aiot/bsp/aiot-bootrom#aiot_bootrom',

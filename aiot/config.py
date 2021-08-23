@@ -7,7 +7,7 @@ from shutil import which
 import hashlib
 import platform
 
-import rity
+import aiot
 
 def print_check(description, status, instructions=None, extra_info=""):
     if status:
@@ -27,7 +27,7 @@ def print_check(description, status, instructions=None, extra_info=""):
         print(f"{instructions}")
 
 class Config:
-    UDEV_FILEPATH = '/etc/udev/rules.d/72-rity.rules'
+    UDEV_FILEPATH = '/etc/udev/rules.d/72-aiot.rules'
     UDEV_RULES = """
 SUBSYSTEM=="usb", ATTR{idVendor}=="0e8d", ATTR{idProduct}=="201c", MODE="0660", TAG+="uaccess"
 SUBSYSTEM=="usb", ATTR{idVendor}=="0403", MODE="0660", TAG+="uaccess"
@@ -69,14 +69,14 @@ SUBSYSTEM=="gpio", MODE="0660", TAG+="uaccess"
             self.check_udev_rules()
 
 app_description = """
-    RITY configuration tool
+    AIoT configuration tool
 
     This tool is used to check the environment of the host machine.
 """
 
 def main():
-    app = rity.App(description=app_description)
+    app = aiot.App(description=app_description)
     app.execute()
 
-    config = rity.Config()
+    config = aiot.Config()
     config.check()

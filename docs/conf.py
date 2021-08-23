@@ -6,7 +6,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'RITY tools manual'
+project = 'AIoT tools manual'
 copyright = '2020, Fabien Parent'
 author = 'Fabien Parent <fparent@baylibre.com>'
 

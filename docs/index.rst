@@ -1,12 +1,12 @@
-RITY tools manual
+AIoT tools manual
 #################
 
 Overview
 ********
 
-RITY tools is a set of tools to configure or interact with MediaTek boards.
-The RITY tools are written in `Python`_. You need to have Python 3 installed on
-your system. The RITY tools have been tested with Python >= 3.6, they may work
+AIoT tools is a set of tools to configure or interact with MediaTek boards.
+The AIoT tools are written in `Python`_. You need to have Python 3 installed on
+your system. The AIoT tools have been tested with Python >= 3.6, they may work
 with older versions of Python, but are untested against these older Python
 releases.
 
@@ -14,16 +14,16 @@ For now the tools only work on Linux.
 
 .. _Python: https://www.python.org/
 
-RITY tools is composed of 4 tools:
+AIoT tools is composed of 4 tools:
 
-	* rity-board: tool to control the board (reset / power / download signals)
-	* rity-config: tool to setup your host system in order to be able to communicate with MediaTek's boards
-	* rity-flash: tool to flash a board with a RITY or RITA image
+	* aiot-board: tool to control the board (reset / power / download signals)
+	* aiot-config: tool to setup your host system in order to be able to communicate with MediaTek's boards
+	* aiot-flash: tool to flash a board with a RITY or RITA image
 
 Prerequisites
 *************
 
-In order to install the RITY tools you must have `python3 >= 3.6` and
+In order to install the AIoT tools you must have `python3 >= 3.6` and
 `pip3 >= 20.3` installed on your system. You can check their versions
 by running the following commands:
 
@@ -55,11 +55,11 @@ You can install `python3` and `pip3` from https://www.python.org/downloads/.
 .. note::
 
 	Make sure to check the "Add Python 3.X to PATH" in order to be able
-	to access the RITY tools from any directory. If you installed Python
+	to access the AIoT tools from any directory. If you installed Python
 	from the Windows Store, you will need to manually add Python's Scripts
 	to the PATH variable.
 
-RITY tools are using fastboot to flash, so you also need to install the
+AIoT tools are using fastboot to flash, so you also need to install the
 fastboot driver and the fastboot executable. Please follow the following
 guides to install the fastboot platform-tools and the fastboot driver:
 
@@ -69,18 +69,18 @@ guides to install the fastboot platform-tools and the fastboot driver:
 Installation
 ************
 
-To install `rity-tools` and its dependencies please run the following command:
+To install `aiot-tools` and its dependencies please run the following command:
 
 .. prompt:: bash $
 
-	pip3 install -U -e "git+https://gitlab.com/baylibre/rich-iot/tools/rity-tools.git#egg=rity-tools"
+	pip3 install -U -e "git+https://gitlab.com/mediatek/aiot/bsp/aiot-tools.git#egg=aiot-tools"
 
 Tools
 *****
 
-This section will describe the usage of every RITY tool.
+This section will describe the usage of every AIoT tool.
 
-rity-board
+aiot-board
 ==========
 
 .. warning::
@@ -106,7 +106,7 @@ configured. Run the following command to configure the FTDI chip:
 
 .. prompt:: bash $
 
-	rity-board program-ftdi --ftdi-product-name <board_name> \
+	aiot-board program-ftdi --ftdi-product-name <board_name> \
 	                          --gpio-power <power_gpio> \
 	                          --gpio-reset <reset_gpio> \
 	                          --gpio-download <download_gpio>
@@ -115,7 +115,7 @@ Please replace `<board_name>`, `<power_gpio>`, `<reset_gpio>`,
 and `<download_gpio>` with the values corresponding to your board. You can
 check your `board documentation`_ to know the values to use.
 
-.. _board documentation: https://baylibre.gitlab.io/rich-iot/meta-mediatek-bsp/boards/index.html
+.. _board documentation: https://mediatek.gitlab.io/aiot/rity/meta-mediatek-bsp/boards/index.html
 
 .. note::
 
@@ -126,7 +126,7 @@ For example for the `i500-pumpkin` board, the command would be:
 
 .. prompt:: bash $
 
-	rity-board program-ftdi --ftdi-product-name i500-pumpkin \
+	aiot-board program-ftdi --ftdi-product-name i500-pumpkin \
 	                          --gpio-power 0 \
 	                          --gpio-reset 1 \
 	                          --gpio-download 2
@@ -145,7 +145,7 @@ In order to reset the board you can run the following command:
 
 .. prompt:: bash $
 
-	rity-board reset --gpio-power <power_gpio> \
+	aiot-board reset --gpio-power <power_gpio> \
 	                   --gpio-reset <reset_gpio> \
 	                   --gpio-download <download_gpio>
 
@@ -157,7 +157,7 @@ following command:
 
 .. prompt:: bash $
 
-	rity-board download --gpio-power <power_gpio> \
+	aiot-board download --gpio-power <power_gpio> \
 	                      --gpio-reset <reset_gpio> \
 	                      --gpio-download <download_gpio>
 
@@ -169,7 +169,7 @@ command:
 
 .. prompt:: bash $
 
-	rity-board power --gpio-power <power_gpio> \
+	aiot-board power --gpio-power <power_gpio> \
 	                   --gpio-reset <reset_gpio> \
 	                   --gpio-download <download_gpio>
 
@@ -190,7 +190,7 @@ check the default values used by the tool below:
 | --gpio-download | -d              | 2             |
 +-----------------+-----------------+---------------+
 
-rity-config
+aiot-config
 ===========
 
 This tool is used to check the configuration of the host environment.
@@ -200,24 +200,24 @@ configured:
 
 .. prompt:: bash $ auto
 
-	 $ rity-config
+	 $ aiot-config
 	 fastboot: OK
 	 udev rules: OK
 
 In case your environment is not setup correctly, the tool will give you some
 instructions on how to correctly configure it.
 
-rity-flash
+aiot-flash
 ==========
 
-This tool allows you to flash your board. `rity-flash` supports flashing
-Yocto images (RITY), and Android images (RITA).
+This tool allows you to flash your board. `aiot-flash` supports flashing
+Yocto images (aiot), and Android images (RITA).
 
 You can flash an image by running the following command:
 
 .. prompt:: bash $
 
-	rity-flash
+	aiot-flash
 
 The tool will try to find an image to flash in your current working directory.
 If you want to flash an image in a different path your can use the `--path`
@@ -225,19 +225,19 @@ parameter:
 
 .. prompt:: bash $
 
-	rity-flash --path /path/to/image
+	aiot-flash --path /path/to/image
 
 It is possible to flash invidual partitions by using:
 
 .. prompt:: bash $
 
-	rity-flash <partition1> <partition2> <partitionX>
+	aiot-flash <partition1> <partition2> <partitionX>
 
 or
 
 .. prompt:: bash $
 
-	rity-flash <partition1>:/path/to/file1 <partition2>:/path/to/file2
+	aiot-flash <partition1>:/path/to/file1 <partition2>:/path/to/file2
 
 Yocto images
 ------------
@@ -251,13 +251,13 @@ using the `--image` parameter.
 
 .. prompt:: bash $
 
-	rity-flash --image rity-bringup-image
+	aiot-flash --image aiot-bringup-image
 
 or
 
 .. prompt:: bash $
 
-	rity-flash -i rity-bringup-image
+	aiot-flash -i aiot-bringup-image
 
 Load a DTBO
 '''''''''''
@@ -267,7 +267,7 @@ to be automatically loaded at boot:
 
 .. prompt:: bash $
 
-	rity-flash --load-dtbo <dtbo_name> --load-dtbo <another_dtbo_name>
+	aiot-flash --load-dtbo <dtbo_name> --load-dtbo <another_dtbo_name>
 
 List available DTBO
 '''''''''''''''''''
@@ -277,24 +277,24 @@ command:
 
 .. prompt:: bash $
 
-	rity-flash --list-dtbo
+	aiot-flash --list-dtbo
 
 
 Interactively choose DTBO
 '''''''''''''''''''''''''
 
-Instead of specifying the DTBO to load you can also run `rity-flash` in
+Instead of specifying the DTBO to load you can also run `aiot-flash` in
 interactive mode:
 
 .. prompt:: bash $
 
-	rity-flash --interactive
+	aiot-flash --interactive
 
 or
 
 .. prompt:: bash $
 
-	rity-flash -I
+	aiot-flash -I
 
 
 Android images
@@ -305,7 +305,7 @@ command:
 
 .. prompt:: bash $
 
-	rity-flash --dtbo-index <dtbo_index>
+	aiot-flash --dtbo-index <dtbo_index>
 
 Please check your RITA board documentation to check the available DTBO indexes.
 
@@ -317,19 +317,19 @@ you can use the following parameter:
 
 .. prompt:: bash $
 
-	rity-flash --bootstrap lk.bin --bootstrap-addr 0x201000 \
+	aiot-flash --bootstrap lk.bin --bootstrap-addr 0x201000 \
 	             --bootstrap-mode aarch64
 
 Board control
 -------------
 
-If your board supports `rity-board`, `rity-flash` will also be able to
+If your board supports `aiot-board`, `aiot-flash` will also be able to
 control the reset and download GPIOs. You can flash and control your
 board using the following command:
 
 .. prompt:: bash $
 
-	rity-flash --gpio-power <power_gpio> \
+	aiot-flash --gpio-power <power_gpio> \
 	             --gpio-reset <reset_gpio> \
 	             --gpio-download <download_gpio>
 

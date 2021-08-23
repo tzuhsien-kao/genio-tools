@@ -7,7 +7,7 @@ import gpiod
 import sys
 import time
 
-import rity
+import aiot
 
 class BoardControl:
     GPIO_LOW = 0
@@ -17,7 +17,7 @@ class BoardControl:
         chip = self.get_gpiochip(chip_id)
 
         config = gpiod.line_request()
-        config.consumer = "rity-board"
+        config.consumer = "aiot-board"
         config.request_type = gpiod.line_request.DIRECTION_OUTPUT
 
         self.reset_gpio = chip.get_line(reset_gpio)
@@ -28,11 +28,11 @@ class BoardControl:
         self.dl_gpio.request(config)
         self.pwr_gpio.request(config)
 
-        self.logger = logging.getLogger('rity')
+        self.logger = logging.getLogger('aiot')
 
     def get_gpiochip(self, chip_id = None):
         known_devices = []
-        logger = logging.getLogger('rity')
+        logger = logging.getLogger('aiot')
 
         if chip_id is not None:
             return gpiod.chip(chip_id)
@@ -72,7 +72,7 @@ class BoardControl:
 
 
 app_description = """
-    RITY board control
+    AIoT board control
 
     This tool is used to control MediaTek boards.
 
@@ -82,7 +82,7 @@ app_description = """
 """
 
 def main():
-    app = rity.App(description=app_description)
+    app = aiot.App(description=app_description)
     parser = app.parser
     logger = app.logger
 
@@ -100,7 +100,7 @@ def main():
     args = app.execute()
 
     if args.command == 'program-ftdi':
-        ftdi = rity.FtdiControl()
+        ftdi = aiot.FtdiControl()
         try:
             ftdi.program(args.ftdi_product_name, args.gpio_reset,
                          args.gpio_download, args.gpio_power)
@@ -109,7 +109,7 @@ def main():
             sys.exit(-1)
         sys.exit(0)
 
-    board = rity.BoardControl(args.gpio_reset, args.gpio_download,
+    board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
                               args.gpio_power, args.gpio_chip)
 
     if args.command == 'reset':

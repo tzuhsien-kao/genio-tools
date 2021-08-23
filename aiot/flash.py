@@ -9,14 +9,14 @@ import sys
 import pathlib
 import platform
 
-import rity
-import rity.image
+import aiot
+import aiot.image
 
 class Flash:
     def __init__(self, image, dry_run=False):
         self.img = image
-        self.fastboot = rity.Fastboot(dry_run=dry_run)
-        self.logger = logging.getLogger('rity')
+        self.fastboot = aiot.Fastboot(dry_run=dry_run)
+        self.logger = logging.getLogger('aiot')
 
     def flash_partition(self, partition, filename):
         def has_method(obj, method):
@@ -75,19 +75,19 @@ class Flash:
         self.fastboot.reboot()
 
 images = {
-    'Yocto': rity.image.YoctoImage,
-    'Android': rity.image.AndroidImage,
+    'Yocto': aiot.image.YoctoImage,
+    'Android': aiot.image.AndroidImage,
 }
 
 app_description = """
-    RITY flashing tool
+    AIoT flashing tool
 
     This tool is used to flash images.
 """
 
-class FlashTool(rity.App):
+class FlashTool(aiot.App):
     def __init__(self):
-        rity.App.__init__(self, description=app_description)
+        aiot.App.__init__(self, description=app_description)
         self.setup_parser()
 
     def setup_parser(self):
@@ -142,7 +142,7 @@ class FlashTool(rity.App):
 
         if not args.dry_run and platform.system() == 'Linux':
             try:
-                board = rity.BoardControl(args.gpio_reset, args.gpio_download,
+                board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
                                           args.gpio_power, args.gpio_chip)
                 board.download_mode_boot()
             except Exception as e:
@@ -157,7 +157,7 @@ class FlashTool(rity.App):
             ]
             subprocess.run(bootrom_app, check=True)
 
-        flasher = rity.Flash(image, dry_run=args.dry_run)
+        flasher = aiot.Flash(image, dry_run=args.dry_run)
         flasher.flash(args.targets)
 
 def main():
