@@ -155,7 +155,10 @@ class FlashTool(aiot.App):
                 '--bootstrap-addr', hex(args.bootstrap_addr),
                 '--bootstrap-mode', args.bootstrap_mode,
             ]
-            subprocess.run(bootrom_app, check=True)
+            try:
+                subprocess.run(bootrom_app, check=True)
+            except KeyboardInterrupt:
+                pass
 
         flasher = aiot.Flash(image, dry_run=args.dry_run)
         flasher.flash(args.targets)
