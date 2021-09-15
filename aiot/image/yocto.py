@@ -12,7 +12,6 @@ import logging
 import os
 import packaging.version
 import struct
-import subprocess
 import sys
 
 import aiot
@@ -53,7 +52,6 @@ class YoctoImage:
     def generate_file(self, partition, filename):
         if partition == 'mmc0':
             self.generate_partition_table()
-            self.generate_sparse_image()
         elif partition == 'mmc0boot1':
             self.generate_uboot_env()
 
@@ -131,7 +129,7 @@ class YoctoImage:
                 if partition == "rootfs":
                     self.partitions[partition] = f"{name}-{machine}.ext4"
                 elif partition == "mmc0":
-                    self.partitions[partition] = f"{name}-{machine}.img"
+                    self.partitions[partition] = f"{name}-{machine}.wic.img"
 
     def generate_partition_table(self):
         wic_image = f"{self.path}/{self.name}-{self.machine}.wic"
@@ -151,24 +149,6 @@ class YoctoImage:
                 hdr_crc32 = binascii.crc32(mbr.read(92))
                 mbr.seek(528)
                 mbr.write(struct.pack("<I", hdr_crc32))
-
-    def generate_sparse_image(self):
-        wic_image = f"{self.path}/{self.name}-{self.machine}.wic"
-        sparse_image = f"{self.path}/{self.name}-{self.machine}.img"
-        block_size = 4096
-
-        if not os.path.exists(wic_image):
-            return
-
-        # Equivalent to `truncate -s%4096` but always works on Windows.
-        with open(wic_image, 'rb+') as wic:
-            wic.seek(0, 2)
-            size = wic.tell()
-            if size % block_size:
-                wic.write(bytearray(block_size - (size % block_size)))
-
-        subprocess.run([sys.executable, "-m", "pysimg", "-o", sparse_image,
-                       wic_image], check=True)
 
     def generate_uboot_env(self):
         env = aiot.UBootEnv(self.args.uboot_env_size,

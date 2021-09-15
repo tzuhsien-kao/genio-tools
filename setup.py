@@ -33,7 +33,6 @@ setuptools.setup(
         'packaging',
         'pyftdi',
         'pyusb',
-        'pysimg @ git+https://github.com/dlenski/PySIMG#egg=pysimg',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
