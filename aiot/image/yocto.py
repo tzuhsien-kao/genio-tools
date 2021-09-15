@@ -50,9 +50,7 @@ class YoctoImage:
             self.run_interactive_mode()
 
     def generate_file(self, partition, filename):
-        if partition == 'mmc0':
-            self.generate_partition_table()
-        elif partition == 'mmc0boot1':
+        if partition == 'mmc0boot1':
             self.generate_uboot_env()
 
     def run_interactive_mode(self):
@@ -130,25 +128,6 @@ class YoctoImage:
                     self.partitions[partition] = f"{name}-{machine}.ext4"
                 elif partition == "mmc0":
                     self.partitions[partition] = f"{name}-{machine}.wic.img"
-
-    def generate_partition_table(self):
-        wic_image = f"{self.path}/{self.name}-{self.machine}.wic"
-        if os.path.exists(wic_image):
-            # extract MBR
-            with open(f"{self.path}/MBR_EMMC", "wb+") as mbr:
-                with open(wic_image, "rb+") as fd:
-                    for blk_id in range(0, 34):
-                        mbr.write(fd.read(512))
-
-                # Remove Backup GPT
-                mbr.seek(544)
-                mbr.write(b'\x01\x00\x00\x00')
-                mbr.seek(528)
-                mbr.write(b'\x00\x00\x00\x00')
-                mbr.seek(512)
-                hdr_crc32 = binascii.crc32(mbr.read(92))
-                mbr.seek(528)
-                mbr.write(struct.pack("<I", hdr_crc32))
 
     def generate_uboot_env(self):
         env = aiot.UBootEnv(self.args.uboot_env_size,
