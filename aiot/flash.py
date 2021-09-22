@@ -77,6 +77,7 @@ class Flash:
 images = {
     'Yocto': aiot.image.YoctoImage,
     'Android': aiot.image.AndroidImage,
+    'Ubuntu': aiot.image.UbuntuImage,
 }
 
 app_description = """
