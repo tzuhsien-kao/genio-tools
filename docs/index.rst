@@ -211,7 +211,7 @@ aiot-flash
 ==========
 
 This tool allows you to flash your board. `aiot-flash` supports flashing
-Yocto images (aiot), and Android images (RITA).
+Yocto images (RITY), and Android images (RITA).
 
 You can flash an image by running the following command:
 
