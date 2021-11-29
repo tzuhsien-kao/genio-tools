@@ -5,6 +5,7 @@
 from pathlib import Path
 import configparser
 import oyaml
+import argparse
 
 import aiot
 
@@ -63,6 +64,15 @@ class AndroidImage:
 
         parser.add_argument('--serialno', type=str, \
             help='Customize serial number used by adb/fastboot')
+
+    @classmethod
+    def define_local_parser(cls, parser):
+        cls.parser = argparse.ArgumentParser(parents = [parser], add_help=False)
+
+    @classmethod
+    def setup_local_parser(cls):
+        cls.setup_parser(cls.parser)
+        return cls.parser.parse_args()
 
     def __str__(self):
         return f"""Android Image:

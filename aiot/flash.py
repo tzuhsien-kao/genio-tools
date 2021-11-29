@@ -121,6 +121,9 @@ class FlashTool(aiot.App):
                 help='GPIO to use to power on the SoC')
 
         for name, image in images.items():
+            image.define_local_parser(self.parser)
+
+        for name, image in images.items():
             image_group = self.parser.add_argument_group(name)
             image.setup_parser(image_group)
 
@@ -133,6 +136,7 @@ class FlashTool(aiot.App):
         for name, img in images.items():
             if img.detect(args.path):
                 image = img(args)
+                image.setup_local_parser()
                 break
 
         if image is None:

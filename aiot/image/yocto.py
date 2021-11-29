@@ -13,6 +13,7 @@ import os
 import packaging.version
 import struct
 import sys
+import argparse
 
 import aiot
 
@@ -235,6 +236,14 @@ class YoctoImage:
         parser.add_argument('--list-dtbo', action="store_true",
             help='Show the list of available DTBO')
 
+    @classmethod
+    def define_local_parser(cls, parser):
+        cls.parser = argparse.ArgumentParser(parents = [parser], add_help=False)
+
+    @classmethod
+    def setup_local_parser(cls):
+        cls.setup_parser(cls.parser)
+        return cls.parser.parse_args()
 
     def __str__(self):
         return f"""AIoT Tools: v{aiot.version}
