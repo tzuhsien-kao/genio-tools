@@ -114,7 +114,8 @@ class YoctoImage:
             self.distro = data['DISTRO']
             self.distro_name = data['DISTRO_NAME']
             self.distro_version = data['DISTRO_VERSION']
-            self.distro_codename = data['DISTRO_CODENAME']
+            if 'DISTRO_CODENAME' in data:
+                self.distro_codename = data['DISTRO_CODENAME']
             self.machine = data['MACHINE']
             self.kernel_dtb = data['KERNEL_DEVICETREE']
 
