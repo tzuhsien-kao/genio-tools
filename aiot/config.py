@@ -5,7 +5,7 @@
 from pathlib import Path
 from shutil import which
 import hashlib
-import platform
+import platform, os, grp
 
 import aiot
 
@@ -60,6 +60,13 @@ SUBSYSTEM=="gpio", MODE="0660", TAG+="uaccess"
             "\t$ sudo udevadm control --reload-rules\n"
             "\t$ sudo udevadm trigger", f"(md5: {rules_md5})")
 
+    @staticmethod
+    def check_credentials():
+        """Checks that we could write to some serial device, eg /dev/ttyACM0"""
+        print_check("Serial device write access", grp.getgrnam('dialout').gr_gid in os.getgroups(),
+                    "You may experience some write permission error('open(/dev/ttyACM0): Permission denied')\n"
+                    "Consider adding your user to the 'dialout' Linux group (sudo adduser `whoami` dialout)");
+
     def check(self):
         print_check('fastboot', which('fastboot'),
             "fastboot is used to flash the board. Please install the android "
@@ -67,6 +74,7 @@ SUBSYSTEM=="gpio", MODE="0660", TAG+="uaccess"
             "\thttps://developer.android.com/studio/releases/platform-tools")
         if platform.system() == 'Linux':
             self.check_udev_rules()
+            self.check_credentials()
 
 app_description = """
     AIoT configuration tool
