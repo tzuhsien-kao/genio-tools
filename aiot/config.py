@@ -5,7 +5,10 @@
 from pathlib import Path
 from shutil import which
 import hashlib
-import platform, os, grp
+import platform, os
+
+if platform.system() != "Windows":
+    import grp
 
 import aiot
 
