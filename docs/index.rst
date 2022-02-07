@@ -75,6 +75,15 @@ To install `aiot-tools` and its dependencies please run the following command:
 
 	pip3 install -U -e "git+https://gitlab.com/mediatek/aiot/bsp/aiot-tools.git#egg=aiot-tools"
 
+Using Two-factor authentication
+===============================
+
+For Two-factor authentication you need to create personal access tokens on
+gitlab. These can then be used to login during installation instead of the
+account password. See the gitlab documentation about [Personal access
+tokens](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
+for information on how to create one.
+
 Tools
 *****
 
