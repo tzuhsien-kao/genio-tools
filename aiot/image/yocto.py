@@ -131,6 +131,9 @@ class YoctoImage:
                 elif partition == "mmc0":
                     self.partitions[partition] = f"{name}-{machine}.wic.img"
 
+            if self.args.load_dtbo and "mmc0boot1" not in self.partitions:
+                self.logger.warn("Can't use --load-dtbo with secure boot enabled")
+
     def generate_uboot_env(self):
         env = aiot.UBootEnv(self.args.uboot_env_size,
                             f"{self.path}/u-boot-initial-env")
