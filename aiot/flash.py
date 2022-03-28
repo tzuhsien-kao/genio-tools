@@ -8,9 +8,21 @@ import subprocess
 import sys
 import pathlib
 import platform
+import pyudev
 
 import aiot
 import aiot.image
+
+def udev_wait():
+    context = pyudev.Context()
+    monitor = pyudev.Monitor.from_netlink(context)
+    monitor.filter_by(subsystem="usb")
+
+    for action, device in monitor:
+        if 'ID_VENDOR_ID' in device and 'ID_MODEL_ID' in device:
+            if device['ID_VENDOR_ID'] == '0e8d':
+                if action == 'bind':
+                    break
 
 class Flash:
     def __init__(self, image, dry_run=False):
@@ -161,6 +173,7 @@ class FlashTool(aiot.App):
                 '--bootstrap-mode', args.bootstrap_mode,
             ]
             try:
+                udev_wait()
                 subprocess.run(bootrom_app, check=True)
             except KeyboardInterrupt:
                 pass
