@@ -33,6 +33,7 @@ class Config:
     UDEV_FILEPATH = '/etc/udev/rules.d/72-aiot.rules'
     UDEV_RULES = """
 SUBSYSTEM=="usb", ATTR{idVendor}=="0e8d", ATTR{idProduct}=="201c", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTR{idVendor}=="0e8d", ATTR{idProduct}=="0003", MODE="0660", TAG+="uaccess"
 SUBSYSTEM=="usb", ATTR{idVendor}=="0403", MODE="0660", TAG+="uaccess"
 SUBSYSTEM=="gpio", MODE="0660", TAG+="uaccess"
 """.lstrip()
