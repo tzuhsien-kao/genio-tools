@@ -6,7 +6,7 @@ Overview
 
 AIoT tools is a set of tools to configure or interact with MediaTek boards.
 The AIoT tools are written in `Python`_. You need to have Python 3 installed on
-your system. The AIoT tools have been tested with Python >= 3.6, they may work
+your system. The AIoT tools have been tested with Python >= 3.7, they may work
 with older versions of Python, but are untested against these older Python
 releases.
 
@@ -23,7 +23,7 @@ AIoT tools is composed of 4 tools:
 Prerequisites
 *************
 
-In order to install the AIoT tools you must have `python3 >= 3.6` and
+In order to install the AIoT tools you must have `python3 >= 3.7` and
 `pip3 >= 20.3` installed on your system. You can check their versions
 by running the following commands:
 
