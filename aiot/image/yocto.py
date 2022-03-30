@@ -118,7 +118,10 @@ class YoctoImage:
                 self.distro_codename = data['DISTRO_CODENAME']
             self.machine = data['MACHINE']
             self.kernel_dtb = data['KERNEL_DEVICETREE']
+            self.distro_features = data['DISTRO_FEATURES']
 
+        if self.args.load_dtbo and 'secure-boot' in self.distro_features:
+            self.logger.warn("Can't use --load-dtbo with secure boot enabled")
 
         self.load_dtbos()
         self.load_config()
@@ -130,9 +133,6 @@ class YoctoImage:
                     self.partitions[partition] = f"{name}-{machine}.ext4"
                 elif partition == "mmc0":
                     self.partitions[partition] = f"{name}-{machine}.wic.img"
-
-            if self.args.load_dtbo and "mmc0boot1" not in self.partitions:
-                self.logger.warn("Can't use --load-dtbo with secure boot enabled")
 
     def generate_uboot_env(self):
         env = aiot.UBootEnv(self.args.uboot_env_size,
