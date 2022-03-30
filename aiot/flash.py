@@ -8,10 +8,12 @@ import subprocess
 import sys
 import pathlib
 import platform
-import pyudev
 
 import aiot
 import aiot.image
+
+if platform.system() == 'Linux':
+    import pyudev
 
 def udev_wait():
     context = pyudev.Context()
@@ -173,7 +175,8 @@ class FlashTool(aiot.App):
                 '--bootstrap-mode', args.bootstrap_mode,
             ]
             try:
-                udev_wait()
+                if platform.system() == 'Linux':
+                    udev_wait()
                 subprocess.run(bootrom_app, check=True)
             except KeyboardInterrupt:
                 pass

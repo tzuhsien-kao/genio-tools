@@ -33,7 +33,7 @@ setuptools.setup(
         'packaging',
         'pyftdi',
         'pyusb',
-        'pyudev',
+        'pyudev;platform_system=="Linux"',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
