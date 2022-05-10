@@ -187,7 +187,7 @@ class YoctoImage:
                 image = self.load_testdata_file(test_data_file)
                 images.add(image)
 
-        images = list(images)
+        images = sorted(list(images))
 
         if len(images) == 0:
             self.logger.error(f"Could not find any Yocto images in directory '{path}'")
