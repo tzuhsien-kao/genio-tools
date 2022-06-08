@@ -47,3 +47,9 @@ class Fastboot:
             return
 
         subprocess.run([self.bin, "reboot"], check=True)
+
+    def write_rpmb_key(self):
+        if self.dry_run:
+            return
+
+        subprocess.run([self.bin, "oem", "rpmb_key"], check=True)

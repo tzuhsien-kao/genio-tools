@@ -26,6 +26,7 @@ setuptools.setup(
             'aiot-flash=aiot.flash:main',
             'aiot-board=aiot.board:main',
             'aiot-efuse=aiot.efuse:main',
+            'aiot-rpmb-write-key=aiot.rpmb:main',
         ]},
     install_requires=[
         'aiot-bootrom @ git+https://gitlab.com/mediatek/aiot/bsp/aiot-bootrom#aiot_bootrom',
