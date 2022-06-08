@@ -20,6 +20,13 @@ class Fastboot:
 
         subprocess.run([self.bin, "flash", partition, filename], check=True)
 
+    def fetch(self, partition, filename):
+        print(f"fetching {partition}={filename}")
+
+        if self.dry_run:
+            return
+
+        subprocess.run([self.bin, "fetch", partition, filename], check=True)
 
     def erase(self, partition):
         print(f"erasing {partition}")
