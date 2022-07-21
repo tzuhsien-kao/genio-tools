@@ -17,6 +17,8 @@ def udev_wait():
 
 def add_bootstrap_group(parser):
     group = parser.add_argument_group('Bootstrap')
+    group.add_argument('-P', '--path', type=str, help='Path to image',
+        default=".")
     group.add_argument('--skip-bootstrap', action="store_true",
         help="Don't bootstrap the board")
     group.add_argument('--bootstrap', type=str, default='lk.bin',

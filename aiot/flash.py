@@ -100,8 +100,6 @@ class FlashTool(aiot.App):
     def setup_parser(self):
         self.parser.add_argument('targets', type=str, nargs='*',
             help='Name of the partition or group of partition to flash')
-        self.parser.add_argument('-P', '--path', type=str, help='Path to image',
-            default=".")
         self.parser.add_argument('--dry-run', action="store_true")
 
         # Bootstrap

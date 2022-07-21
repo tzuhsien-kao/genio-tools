@@ -28,8 +28,6 @@ class EfuseTool(aiot.App):
         self.fastboot = aiot.Fastboot()
 
     def setup_parser(self):
-        self.parser.add_argument('-P', '--path', type=str, help='Path to image',
-                default=".")
         self.parser.add_argument('-y', action='store_true',
                 help='Don\'t ask confirmation before blowing efuse')
 
