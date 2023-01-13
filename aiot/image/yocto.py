@@ -133,6 +133,8 @@ class YoctoImage:
                     self.partitions[partition] = f"{name}-{machine}.ext4"
                 elif partition == "mmc0":
                     self.partitions[partition] = f"{name}-{machine}.wic.img"
+                elif partition == "modules":
+                    self.partitions[partition] = f"modules-{machine}.modimg.ext4"
 
     def generate_uboot_env(self):
         env = aiot.UBootEnv(self.args.uboot_env_size,
