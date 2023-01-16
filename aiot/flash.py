@@ -7,6 +7,7 @@ import logging
 import sys
 import pathlib
 import platform
+import os
 
 import aiot
 import aiot.image
@@ -52,6 +53,31 @@ class Flash:
                     self.logger.error(f"invalid partition {partition}")
                     return
                 self.flash_partition(partition, self.img.partitions[partition])
+
+    def check(self, targets):
+        if len(targets) == 0 and 'all' not in self.img.groups:
+            self.logger.error("No target specified, and no 'all' default target available")
+            return False
+
+        for target in targets:
+            partition = target
+            binary = None
+            if ':' in target:
+                partition, binary = target.split(':')
+
+            if target not in self.img.groups and partition not in self.img.partitions:
+                self.logger.error(f"Invalid target '{target}'")
+                return False
+
+            if partition in self.img.partitions:
+                if binary == None:
+                    binary = self.img.partitions[partition]
+
+                if not os.path.exists(binary):
+                    self.logger.error(f"The binary file '{binary}' for partition '{partition}' doesn't exist")
+                    return False
+
+        return True
 
     def flash(self, targets):
         if len(targets) == 0:
@@ -140,6 +166,10 @@ class FlashTool(aiot.App):
 
         print(image)
 
+        flasher = aiot.Flash(image, dry_run=args.dry_run)
+        if not flasher.check(args.targets):
+            return
+
         if not args.dry_run and platform.system() == 'Linux':
             try:
                 board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
@@ -151,7 +181,6 @@ class FlashTool(aiot.App):
         if not args.skip_bootstrap and not args.dry_run:
             run_bootrom(args)
 
-        flasher = aiot.Flash(image, dry_run=args.dry_run)
         flasher.flash(args.targets)
 
 def main():
