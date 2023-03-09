@@ -189,6 +189,10 @@ class YoctoImage:
     def generate_uboot_env(self):
         env = aiot.UBootEnv(self.args.uboot_env_size,
                             f"{self.path}/u-boot-initial-env")
+
+        if self.args.serialno:
+            env.add("serial#", self.args.serialno)
+
         if len(self.kernel_dtbo_autoload) > 0:
             boot_conf = f"#conf-{self.kernel_dtb.replace('/', '_')}"
             list_dtbo = ""
