@@ -71,7 +71,7 @@ class Flash:
 
             if partition in self.img.partitions:
                 if binary == None:
-                    binary = self.img.partitions[partition]
+                    binary = os.path.join(self.img.path, self.img.partitions[partition])
 
                 if not os.path.exists(binary):
                     self.logger.error(f"The binary file '{binary}' for partition '{partition}' doesn't exist")
