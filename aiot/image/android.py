@@ -62,9 +62,6 @@ class AndroidImage:
         parser.add_argument('--dtbo-index', type=str, \
             help='Enable one or multiple DTBO(s)')
 
-        parser.add_argument('--serialno', type=str, \
-            help='Customize serial number used by adb/fastboot')
-
     @classmethod
     def define_local_parser(cls, parser):
         cls.parser = argparse.ArgumentParser(parents = [parser], add_help=False)

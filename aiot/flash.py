@@ -134,6 +134,11 @@ class FlashTool(aiot.App):
             type = lambda num: int(num, 0),
             help = 'Enable U-Boot redundant env generation and assign offset of the redundant data. No redundant env by default.')
 
+    def add_firmware_group(self, parser):
+        group = parser.add_argument_group('Firmware')
+        group.add_argument('--serialno', type=str, \
+            help='Customize serial number used by adb/fastboot')
+
     def setup_parser(self):
         self.parser.add_argument('targets', type=str, nargs='*',
             help='Name of the partition or group of partition to flash')
@@ -142,6 +147,7 @@ class FlashTool(aiot.App):
         # Bootstrap
         add_bootstrap_group(self.parser)
 
+        self.add_firmware_group(self.parser)
         self.add_uboot_group(self.parser)
 
         if platform.system() == 'Linux':
