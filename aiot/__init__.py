@@ -12,5 +12,8 @@ from aiot.ubootenv import UBootEnv
 from aiot.version import version
 
 if platform.system() == 'Linux':
-    from aiot.board import BoardControl
+    from aiot.boardcontrol_linux import BoardControl
     from aiot.ftdi import FtdiControl
+elif platform.system() == 'Windows':
+    from aiot.boardcontrol_win import BoardControl
+    from aiot.ftdi_win import FtdiControl
