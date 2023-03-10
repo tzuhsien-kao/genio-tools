@@ -71,11 +71,15 @@ class FtdiControl:
         device = self.find_device()
 
         eeprom = device.eeRead()
-        
+
+        # HighDrive IO is required to drive Genio 350 EVK reset pin
+        eeprom.HighDriveIOs = 1
+
         for pin in (reset_gpio, download_gpio, power_gpio):
             self.config_cbus_iomode(eeprom, pin)
         
         device.eeProgram(eeprom)
+        device.resetDevice()
         device.close()
         self.logger.info("FTDI device programmed successfully")
 

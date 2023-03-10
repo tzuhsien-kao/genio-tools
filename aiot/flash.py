@@ -206,6 +206,8 @@ class FlashTool(aiot.App):
                 board.download_mode_boot()
             except Exception as e:
                 self.logger.warning(str(e))
+                self.logger.warning("Board control failed. This might be caused by TTY/COM port being used by another process, "
+                "such as TeraTerm or Putty on Windows. You could try manually put the board in DOWNLOAD mode. Continue flashing...")
 
         if not args.skip_bootstrap and not args.dry_run:
             run_bootrom(args)
