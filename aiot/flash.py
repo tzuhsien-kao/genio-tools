@@ -159,6 +159,16 @@ class FlashTool(aiot.App):
                 help='GPIO to use to put the SoC in download mode (KPCOL0 pin)')
             group.add_argument('-p', '--gpio-power', type=int, default=0,
                 help='GPIO to use to power on the SoC')
+        
+        if platform.system() == 'Windows':
+            group = self.parser.add_argument_group('Board Control (using ftd2xx driver)')
+            group.add_argument('-c', '--gpio-chip', type=int, help='FTDI device serial')
+            group.add_argument('-r', '--gpio-reset', type=int, default=1,
+                help='GPIO to use to reset the SoC')
+            group.add_argument('-d', '--gpio-download', type=int, default=2,
+                help='GPIO to use to put the SoC in download mode (KPCOL0 pin)')
+            group.add_argument('-p', '--gpio-power', type=int, default=0,
+                help='GPIO to use to power on the SoC')
 
         for name, image in images.items():
             image.define_local_parser(self.parser)
@@ -189,7 +199,7 @@ class FlashTool(aiot.App):
         if not flasher.check(args.targets):
             return
 
-        if not args.dry_run and platform.system() == 'Linux':
+        if not args.dry_run:
             try:
                 board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
                                           args.gpio_power, args.gpio_chip)
