@@ -45,18 +45,27 @@ def get_model(t):
     return ftd.defines.Device(t).name
 
 class FtdiControl:
-    def __init__(self):
+    def __init__(self, serial = None):
         self.logger = logging.getLogger('aiot')
         self.logger.debug(f"FTDI D2xx library version: {ftd.getLibraryVersion()}")
+        self.serial = serial
+    
+    def print_device_list(self):
+        ftd.createDeviceInfoList()
+        for serial in ftd.listDevices():
+            print(str(serial, 'utf-8'))
 
-    def find_device(self):
-        devices = ftd.listDevices()
-        if len(devices) == 0:
-            raise RuntimeError("Cannot find any FTDI device")
-        elif len(devices) > 1:
-            raise RuntimeError("More than one FTDI device connected")
-
-        d = ftd.open(0)
+    def find_device(self, serial = None):
+        if serial:
+            d = ftd.openEx(serial.encode('utf-8'))
+        else:
+            devices = ftd.listDevices()
+            if len(devices) == 0:
+                raise RuntimeError("Cannot find any FTDI device")
+            elif len(devices) > 1:
+                raise RuntimeError("More than one FTDI device connected")
+            d = ftd.open(0)
+        
         com = d.getComPortNumber()
         info = d.getDeviceInfo()
         self.logger.info(f"Found FTDI device {get_model(d.type)} in COM{com}: {info}")
@@ -67,19 +76,25 @@ class FtdiControl:
     def config_cbus_iomode(self, eeprom, bus_pin):
         setattr(eeprom, f'Cbus{bus_pin}', FT232R_CBUS_OPTIONS.FT_232R_CBUS_IOMODE)
 
-    def program(self, product_name, reset_gpio, download_gpio, power_gpio):
-        device = self.find_device()
+    def program(self, product_name, reset_gpio, download_gpio, power_gpio, new_serial = None):
+        device = self.find_device(self.serial)
 
         eeprom = device.eeRead()
 
         # HighDrive IO is required to drive Genio 350 EVK reset pin
         eeprom.HighDriveIOs = 1
 
+        if new_serial:
+            eeprom.SerialNumber = new_serial.encode('utf-8')
+
         for pin in (reset_gpio, download_gpio, power_gpio):
             self.config_cbus_iomode(eeprom, pin)
         
         device.eeProgram(eeprom)
+        # reset & cycle port is required for 
+        # FTD driver to update the new serial number
         device.resetDevice()
+        device.cyclePort()
         device.close()
         self.logger.info("FTDI device programmed successfully")
 
@@ -87,5 +102,6 @@ class FtdiControl:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     c = FtdiControl()
-    c.find_device().close()
-    c.program("", 1, 2, 0)
+    c.print_device_list()
+    #c.find_device().close()
+    #c.program("", 1, 2, 0)

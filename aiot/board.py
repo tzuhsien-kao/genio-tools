@@ -3,6 +3,7 @@
 # Author: Fabien Parent <fparent@baylibre.com>
 
 import logging
+import platform
 import sys
 import time
 import aiot
@@ -10,7 +11,7 @@ import aiot
 app_description = """
     AIoT board control
 
-    This tool is used to control MediaTek boards.
+    This tool is used to control MediaTek Genio and Pumpkin boards.
 
     WARNING: This tool cannot be used with all the boards. Please
     refer to the board documentation to check whether this tool
@@ -23,7 +24,7 @@ def main():
     logger = app.logger
 
     parser.add_argument('command', type=str,
-        choices=['reset', 'download', 'power', 'program-ftdi'])
+        choices=['reset', 'download', 'power', 'program-ftdi', 'list'])
     parser.add_argument('-c', '--gpio-chip', type=int, help='GPIOChip device')
     parser.add_argument('-r', '--gpio-reset', type=int, default=1,
         help='GPIO to use to reset the SoC')
@@ -33,20 +34,35 @@ def main():
         help='GPIO to use to power on the SoC')
     parser.add_argument('--ftdi-product-name', type=str, default='undefined')
 
+    if platform.system() == 'Windows':
+        parser.add_argument('-s', '--serial', type=str, default=None, help='If multiple boards are connected, open the device with specific serial on Windows.')
+        parser.add_argument('--set-serial', type=str, default=None, help="when 'program-ftdi', also update the serial in eeprom.")
+
     args = app.execute()
 
+    if args.command == 'list':
+        ftdi = aiot.FtdiControl(args.serial)
+        try:
+            ftdi.print_device_list()
+        except Exception as e:
+            logger.error(e)
+            sys.exit(-1)
+        sys.exit(0)
+
     if args.command == 'program-ftdi':
-        ftdi = aiot.FtdiControl()
+        ftdi = aiot.FtdiControl(args.serial)
         try:
             ftdi.program(args.ftdi_product_name, args.gpio_reset,
-                         args.gpio_download, args.gpio_power)
+                         args.gpio_download, args.gpio_power,
+                         new_serial = args.set_serial)
         except Exception as e:
             logger.error(e)
             sys.exit(-1)
         sys.exit(0)
 
     board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
-                              args.gpio_power, args.gpio_chip)
+                              args.gpio_power, args.gpio_chip,
+                              serial = args.serial)
 
     if args.command == 'reset':
         board.reset()

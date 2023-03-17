@@ -11,17 +11,18 @@ class BoardControl:
     GPIO_LOW = 0
     GPIO_HIGH = 1
 
-    def __init__(self, reset_gpio, dl_gpio, pwr_gpio, chip_id = None):
+    def __init__(self, reset_gpio, dl_gpio, pwr_gpio, chip_id = None, serial = None):
         self.logger = logging.getLogger('aiot')
         self.rst_gpio = reset_gpio
         self.dl_gpio = dl_gpio
         self.pwr_gpio = pwr_gpio
+        self.serial = serial
 
         self._init_cbus()
 
     def _init_cbus(self, chip_id = None):
-        ftdi = FtdiControl()
-        self.dev = ftdi.find_device()
+        ftdi = FtdiControl(self.serial)
+        self.dev = ftdi.find_device(self.serial)
         return 0
 
     def mask_high(self):
