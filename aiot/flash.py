@@ -137,7 +137,9 @@ class FlashTool(aiot.App):
     def add_firmware_group(self, parser):
         group = parser.add_argument_group('Firmware')
         group.add_argument('--serialno', type=str, \
-            help='Customize serial number used by adb/fastboot')
+            help="Customize serial number used in adb and fastboot, e.g. the result of 'adb devices'\n"
+                 "This is not the serial used by 'aiot-board -s' and 'aiot-flash -s',"
+                 "which is FTDI serial connected to UART0.")
 
     def setup_parser(self):
         self.parser.add_argument('targets', type=str, nargs='*',
@@ -162,7 +164,7 @@ class FlashTool(aiot.App):
         
         if platform.system() == 'Windows':
             group = self.parser.add_argument_group('Board Control (using ftd2xx driver)')
-            group.add_argument('-c', '--gpio-chip', type=int, help='FTDI device serial')
+            group.add_argument('-c', '--gpio-com', type=str, default=None, help='Serial number of the board control COM port. This should be the serial reported by "aiot-board list".')
             group.add_argument('-r', '--gpio-reset', type=int, default=1,
                 help='GPIO to use to reset the SoC')
             group.add_argument('-d', '--gpio-download', type=int, default=2,
@@ -201,8 +203,14 @@ class FlashTool(aiot.App):
 
         if not args.dry_run:
             try:
-                board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
-                                          args.gpio_power, args.gpio_chip)
+                if platform.system() == 'Linux':
+                    board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
+                                            args.gpio_power, args.gpio_chip,
+                                            serial = None)
+                elif platform.system() == 'Windows':
+                    board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
+                                            args.gpio_power, None,
+                                            serial = args.gpio_com)
                 board.download_mode_boot()
             except Exception as e:
                 self.logger.warning(str(e))
