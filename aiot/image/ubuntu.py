@@ -24,8 +24,9 @@ class UbuntuImage:
         self.ubuntu_version = None
         self.ubuntu_codename = None
         self.mtk_aiot = None
-        self.uboot_env_size = 4096
-        self.uboot_env_redund_offset = 0x100000
+        self.uboot_env_size = self.args.uboot_env_size
+        offset_arg = self.args.uboot_env_redund_offset
+        self.uboot_env_redund_offset = 0x100000 if offset_arg == -1 else offset_arg
         self.eth_oui = "00:0C:E7"
         self.num_of_eth = 0
         self.tools_cfg = []
@@ -73,8 +74,12 @@ class UbuntuImage:
                 uboot_env = data['uboot-env']
                 if 'env-size' in uboot_env:
                     self.uboot_env_size = int(uboot_env['env-size'], 0)
+                    self.logger.debug(f"ubuntu.json: uboot_env_size={self.uboot_env_size}")
                 if 'env-redund-offset' in uboot_env:
-                    self.uboot_env_redund_offset = int(uboot_env['env-redund-offset'], 0)
+                    json_redund_offset = int(uboot_env['env-redund-offset'], 0)
+                    if self.uboot_env_redund_offset != json_redund_offset:
+                        self.logger.warning(f"ubuntu.json overrides uboot_env_redund_offset=0x{self.uboot_env_redund_offset:08x}")    
+                    self.uboot_env_redund_offset = json_redund_offset
 
             if 'ethernet' in data:
                 ethernet = data['ethernet']

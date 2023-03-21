@@ -147,7 +147,8 @@ class YoctoImage:
                 list_dtbo += f"{dtbo} "
             env.update('boot_conf', boot_conf)
             env.update('list_dtbo', list_dtbo)
-        env.write_binary(f"{self.path}/u-boot-env.bin")
+        self.logger.debug(f"redund_offset={self.args.uboot_env_redund_offset}")
+        env.write_binary(f"{self.path}/u-boot-env.bin", self.args.uboot_env_redund_offset)
 
     def load_env_file(self, env_file):
         with open(env_file, 'r') as fp:
@@ -233,8 +234,6 @@ class YoctoImage:
     def setup_parser(cls, parser):
         parser.add_argument('-i', '--image', type=str,
             help='Name of the image to flash')
-        parser.add_argument('--uboot-env-size', default = 4096, type = int, \
-            help = 'Size of the U-Boot environment storage')
         parser.add_argument('-I', '--interactive', action="store_true",
             help='Interactively select what will be flashed')
         parser.add_argument('--load-dtbo', action="append", type=str,

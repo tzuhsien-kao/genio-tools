@@ -2,12 +2,14 @@
 # Copyright 2020 (c) BayLibre, SAS
 # Author: Fabien Parent <fparent@baylibre.com>
 
+import logging
 import random
 import zlib
 import struct
 
 class UBootEnv:
     def __init__(self, env_size, env_file):
+        self.logger = logging.getLogger('aiot')
         self.env = [];
         self.env_size = env_size
         with open(env_file, "r") as env:
@@ -67,7 +69,7 @@ class UBootEnv:
                 return
 
             if redund_offset < self.env_size:
-                print("redund_offset < env_size: the redund env will override the main env, aborting...")
+                self.logger.error(f"redund_offset(0x{redund_offset:08x}) < env_size(0x{self.env_size:08x}): the redund env will override the main env, aborting...")
                 return
 
             out.seek(redund_offset)

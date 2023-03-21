@@ -123,6 +123,17 @@ class FlashTool(aiot.App):
         aiot.App.__init__(self, description=app_description)
         self.setup_parser()
 
+    def add_uboot_group(self, parser):
+        group = parser.add_argument_group('U-Boot')
+        group.add_argument('--uboot-env-size',
+            default = 4096, 
+            type = lambda num: int(num, 0),
+            help = 'Size of the U-Boot environment storage. Default to 4096 bytes.')
+        group.add_argument('--uboot-env-redund-offset', 
+            default = -1,
+            type = lambda num: int(num, 0),
+            help = 'Enable U-Boot redundant env generation and assign offset of the redundant data. No redundant env by default.')
+
     def setup_parser(self):
         self.parser.add_argument('targets', type=str, nargs='*',
             help='Name of the partition or group of partition to flash')
@@ -130,6 +141,8 @@ class FlashTool(aiot.App):
 
         # Bootstrap
         add_bootstrap_group(self.parser)
+
+        self.add_uboot_group(self.parser)
 
         if platform.system() == 'Linux':
             group = self.parser.add_argument_group('Board Control (using libgpiod)')
