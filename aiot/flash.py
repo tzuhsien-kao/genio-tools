@@ -203,6 +203,7 @@ class FlashTool(aiot.App):
 
         if not args.dry_run:
             try:
+                self.logger.info("Try to automatically reset the board into DOWNLOAD mode...")
                 if platform.system() == 'Linux':
                     board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
                                             args.gpio_power, args.gpio_chip,
@@ -212,10 +213,18 @@ class FlashTool(aiot.App):
                                             args.gpio_power, None,
                                             serial = args.gpio_com)
                 board.download_mode_boot()
+            except RuntimeError as r:
+                self.logger.warning(r)
+                self.logger.warning("Unable to find and reset the board. Possible causes are:\n"
+                                    "1. This is not a Genio 350/700 EVK, nor a Pumpkin board.\n"
+                                    "2. The board port UART0 is not connected.\n"
+                                    "3. The UART0 port is being opened by another tool, such as TeraTerm on Windows.\n"
+                                    "You can now manually reset the board into DOWNLOAD mode.\n")
+                self.logger.info("Continue flashing...")
             except Exception as e:
                 self.logger.warning(str(e))
-                self.logger.warning("Board control failed. This might be caused by TTY/COM port being used by another process, "
-                "such as TeraTerm or Putty on Windows. You could try manually put the board in DOWNLOAD mode. Continue flashing...")
+                self.logger.warning("Board control failed. You could try manually put the board in DOWNLOAD mode.")
+                self.logger.info("Continue flashing...")
 
         if not args.skip_bootstrap and not args.dry_run:
             run_bootrom(args)

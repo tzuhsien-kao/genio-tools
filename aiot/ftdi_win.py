@@ -58,14 +58,16 @@ class FtdiControl:
     def find_device(self, serial = None):
         if serial:
             d = ftd.openEx(serial.encode('utf-8'))
+            if not d:
+                raise RuntimeError(f"Cannot find assigned FTDI device {serial}")
         else:
             devices = ftd.listDevices()
-            if len(devices) == 0:
+            if not devices:
                 raise RuntimeError("Cannot find any FTDI device")
             elif len(devices) > 1:
                 raise RuntimeError("More than one FTDI device connected")
             d = ftd.open(0)
-        
+               
         com = d.getComPortNumber()
         info = d.getDeviceInfo()
         self.logger.info(f"Found FTDI device {get_model(d.type)} in COM{com}: {info}")
