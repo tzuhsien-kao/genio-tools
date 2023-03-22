@@ -25,7 +25,7 @@ class UbuntuImage:
         self.ubuntu_codename = None
         self.mtk_aiot = None
         self.uboot_env_size = "4096"
-        self.uboot_env_offset_redund = "0x100000"
+        self.uboot_env_redund_offset = "0x100000"
         self.eth_oui = "00:0C:E7"
         self.num_of_eth = 0
         self.tools_cfg = []
@@ -73,8 +73,8 @@ class UbuntuImage:
                 uboot_env = data['uboot-env']
                 if 'env-size' in uboot_env:
                     self.uboot_env_size = uboot_env['env-size']
-                if 'env-offset-redund' in uboot_env:
-                    self.uboot_env_offset_redund = uboot_env['env-offset-redund']
+                if 'env-redund-offset' in uboot_env:
+                    self.uboot_env_redund_offset = uboot_env['env-redund-offset']
 
             if 'ethernet' in data:
                 ethernet = data['ethernet']
@@ -138,7 +138,7 @@ class UbuntuImage:
     def generate_uboot_env(self):
         env = aiot.UBootEnv(int(self.uboot_env_size), f"{self.path}/u-boot-initial-env")
         env.gen_mac_addr(self.eth_oui, self.num_of_eth)
-        env.write_binary(f"{self.path}/u-boot-env.bin", int(self.uboot_env_offset_redund, 16))
+        env.write_binary(f"{self.path}/u-boot-env.bin", int(self.uboot_env_redund_offset, 16))
 
     @classmethod
     def detect(cls, path):
