@@ -23,8 +23,6 @@ class App: # pylint: disable=too-few-public-methods
         self.parser.add_argument('-V', '--version', action="store_true",
             help='Show the version')
 
-        logging.basicConfig(level=logging.INFO)
-
     def execute(self):
         args = self.parser.parse_args()
 
@@ -34,5 +32,7 @@ class App: # pylint: disable=too-few-public-methods
 
         if args.verbose:
             logging.basicConfig(level=logging.DEBUG)
+        else:
+            logging.basicConfig(level=logging.INFO)
 
         return args
