@@ -21,6 +21,7 @@ class BoardControl:
         self._init_cbus()
 
     def _init_cbus(self, chip_id = None):
+        self.logger.debug(f"connect to {self.serial}")
         ftdi = FtdiControl(self.serial)
         self.dev = ftdi.find_device(self.serial)
         return 0

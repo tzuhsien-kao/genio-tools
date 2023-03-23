@@ -8,58 +8,46 @@ import sys
 import time
 import aiot
 
-app_description = """
-    AIoT board control
+app_description = f"""
+    AIoT board control version {aiot.version}
 
-    This tool is used to control MediaTek Genio and Pumpkin boards.
+    This tool is used to control MediaTek Genio and Pumpkin boards thorugh
+    the FTDI serial chip connected to UART0 on the board.
 
     WARNING: This tool cannot be used with all the boards. Please
     refer to the board documentation to check whether this tool
     can be used.
+
+    To use this board, you need to connect to the port labeled as
+    UART0 on the Genio or Pumpkin boards. It is usually a micro-USB port.
+
+    Example Usage
+    -------------
+
+    `aiot-board list`
+        shows the SERIAL of all the connected FTDI chips
+
+    `aiot-board -s SERIAL program-ftdi`
+        must be called at least once to properly program the FTDI chip of the Genio/Pumpkin
+        board to use the "reset", "download" and "power" commands.
+
+        On some boards, you might have to change the GPIO configurations ("--gpio-reset" and others) according to board design.
+        If there is only one FTDI chip connected, the "-s SERIAL" option could be omitted.
+
+    `aiot-board -s SERIAL program-ftdi --ftdi-serial NEW_SERIAL`
+        can be used to update the SERIAL of a given FTDI chip.
+
+    `aiot-board -s SERIAL reset`
+        would hard reset the Genio or Pumpkin board
+
+    `aiot-board -s SERIAL download`
+        would hard reset the Genio or Pumpkin board and put it into download mode, for subsequent
+        image flashing process.
+
+    If there is only one FTDI chip connected, the "-s SERIAL" option could be omitted.
 """
 
-def main():
-    app = aiot.App(description=app_description)
-    parser = app.parser
-    logger = app.logger
-
-    parser.add_argument('command', type=str,
-        choices=['reset', 'download', 'power', 'program-ftdi', 'list'])
-    parser.add_argument('-c', '--gpio-chip', type=int, help='GPIOChip device')
-    parser.add_argument('-r', '--gpio-reset', type=int, default=1,
-        help='GPIO to use to reset the SoC')
-    parser.add_argument('-d', '--gpio-download', type=int, default=2,
-        help='GPIO to use to put the SoC in download mode (KPCOL0 pin)')
-    parser.add_argument('-p', '--gpio-power', type=int, default=0,
-        help='GPIO to use to power on the SoC')
-    parser.add_argument('--ftdi-product-name', type=str, default='undefined')
-
-    if platform.system() == 'Windows':
-        parser.add_argument('-s', '--serial', type=str, default=None, help='If multiple boards are connected, open the device with specific serial on Windows.')
-        parser.add_argument('--set-serial', type=str, default=None, help="when 'program-ftdi', also update the serial in eeprom.")
-
-    args = app.execute()
-
-    if args.command == 'list':
-        ftdi = aiot.FtdiControl(args.serial)
-        try:
-            ftdi.print_device_list()
-        except Exception as e:
-            logger.error(e)
-            sys.exit(-1)
-        sys.exit(0)
-
-    if args.command == 'program-ftdi':
-        ftdi = aiot.FtdiControl(args.serial)
-        try:
-            ftdi.program(args.ftdi_product_name, args.gpio_reset,
-                         args.gpio_download, args.gpio_power,
-                         new_serial = args.set_serial)
-        except Exception as e:
-            logger.error(e)
-            sys.exit(-1)
-        sys.exit(0)
-
+def do_board_command(args):
     board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
                               args.gpio_power, args.gpio_chip,
                               serial = args.serial)
@@ -71,6 +59,73 @@ def main():
     elif args.command == 'power':
         board.power()
 
+def main():
+    app = aiot.App(description=app_description)
+    parser = app.parser
+    logger = app.logger
+
+    if platform.system() == 'Windows':
+        parser.add_argument('-s', '--serial',
+                            type=str,
+                            default=None,
+                            help="Specify which board to connect to using FTDI serial. You can get serial with 'aiot-board list'")
+
+    #parser.add_argument('command', type=str,
+    #    choices=['reset', 'download', 'power', 'program-ftdi', 'list'],
+    #    help=)
+    subparsers = parser.add_subparsers(
+        dest = 'command',
+    )
+
+    list_parser = subparsers.add_parser('list',
+                                        help = "List the serial number in EEPROM of all connected FTDI chips."
+    )
+
+    ftdi_parser = subparsers.add_parser('program-ftdi',
+                                        help = "Program the FTDI EEPROM, such as serial, product name, and configure the CBUS(GPIO) settings used by reset, download, and power commands."
+    )
+    ftdi_parser.add_argument('--ftdi-product-name', type=str, default='undefined', help="Currently no effect.")
+    ftdi_parser.add_argument('--ftdi-serial', '--set-serial', type=str, default=None, help="Update the serial number in eeprom.")
+
+    board_parsers = [
+        ftdi_parser,
+        subparsers.add_parser('reset', help = "Reset the board"),
+        subparsers.add_parser('download', help = "Reset and put the board into download mode"),
+        subparsers.add_parser('power', help="Power on the board"),
+    ]
+
+    for b in board_parsers:
+        b.add_argument('-c', '--gpio-chip', type=int, help='GPIOChip device')
+        b.add_argument('-r', '--gpio-reset', type=int, default=1,
+            help='GPIO to use to reset the SoC')
+        b.add_argument('-d', '--gpio-download', type=int, default=2,
+            help='GPIO to use to put the SoC in download mode (KPCOL0 pin)')
+        b.add_argument('-p', '--gpio-power', type=int, default=0,
+            help='GPIO to use to power on the SoC')
+        b.set_defaults(func=do_board_command)
+
+    args = app.execute()
+
+    if not args.command:
+        logger.error("No command(list/program-ftdi/reset/download) speficied.")
+        parser.print_usage()
+        sys.exit(-1)
+    
+    try:
+        if args.command == 'list':
+            ftdi = aiot.FtdiControl(args.serial)
+            ftdi.print_device_list()
+        elif args.command == 'program-ftdi':
+            ftdi = aiot.FtdiControl(args.serial)
+            ftdi.program(args.ftdi_product_name, args.gpio_reset,
+                         args.gpio_download, args.gpio_power,
+                         new_serial = args.ftdi_serial)
+        else:
+            args.func(args)
+        sys.exit(0)
+    except Exception as e:
+        logger.error(e, exc_info = args.verbose)
+        sys.exit(-1)
 
 if __name__ == '__main__':
     main()
