@@ -42,6 +42,7 @@ setuptools.setup(
         'pyftdi',
         'pyusb',
         'pyudev;platform_system=="Linux"',
+        'ftd2xx;platform_system=="Windows"',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
