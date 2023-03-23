@@ -164,7 +164,7 @@ class FlashTool(aiot.App):
         
         if platform.system() == 'Windows':
             group = self.parser.add_argument_group('Board Control (using ftd2xx driver)')
-            group.add_argument('-c', '--gpio-com', type=str, default=None, help='Serial number of the board control COM port. This should be the serial reported by "aiot-board list".')
+            group.add_argument('-c', '--ftdi-serial', '-s', type=str, default=None, help='Serial number of the board control COM port. This should be the serial reported by "aiot-board list".')
             group.add_argument('-r', '--gpio-reset', type=int, default=1,
                 help='GPIO to use to reset the SoC')
             group.add_argument('-d', '--gpio-download', type=int, default=2,
@@ -211,7 +211,7 @@ class FlashTool(aiot.App):
                 elif platform.system() == 'Windows':
                     board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
                                             args.gpio_power, None,
-                                            serial = args.gpio_com)
+                                            serial = args.ftdi_serial)
                 board.download_mode_boot()
             except RuntimeError as r:
                 self.logger.warning(r)
