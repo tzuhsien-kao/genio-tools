@@ -27,6 +27,7 @@ class UbuntuImage:
         self.uboot_env_size = self.args.uboot_env_size
         offset_arg = self.args.uboot_env_redund_offset
         self.uboot_env_redund_offset = 0x100000 if offset_arg == -1 else offset_arg
+        self.uboot_env_redund_support = True
         self.eth_oui = "00:0C:E7"
         self.num_of_eth = 0
         self.tools_cfg = []
@@ -80,6 +81,9 @@ class UbuntuImage:
                     if self.uboot_env_redund_offset != json_redund_offset:
                         self.logger.warning(f"ubuntu.json overrides uboot_env_redund_offset=0x{self.uboot_env_redund_offset:08x}")    
                     self.uboot_env_redund_offset = json_redund_offset
+                if 'env-redund-support' in uboot_env:
+                    self.uboot_env_redund_support = bool(uboot_env['env-redund-support'])
+                    self.logger.debug(f"ubuntu.json: uboot_env_redund_support={self.uboot_env_redund_support}")
 
             if 'ethernet' in data:
                 ethernet = data['ethernet']
@@ -143,6 +147,8 @@ class UbuntuImage:
     def generate_uboot_env(self):
         env = aiot.UBootEnv(int(self.uboot_env_size), f"{self.path}/u-boot-initial-env")
         env.gen_mac_addr(self.eth_oui, self.num_of_eth)
+        if not self.uboot_env_redund_support:
+            self.uboot_env_redund_offset = -1
         env.write_binary(f"{self.path}/u-boot-env.bin", self.uboot_env_redund_offset)
 
     @classmethod
