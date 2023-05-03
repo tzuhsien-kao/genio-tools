@@ -8,17 +8,19 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="aiot-tools",
+    name="genio-tools",
     use_scm_version={
         'write_to': 'aiot/version.py',
+        'local_scheme':'no-local-version'
     },
     setup_requires = ['setuptools_scm'],
     author="Fabien Parent",
-    author_email="fparent@baylibre.com",
-    description="aiot tools",
+    maintainer="Pablo Sun",
+    maintainer_email="pablo.sun@mediatek.com",
+    description="Tools for flashing boards using MediaTek Genio SoCs",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitlab.com/mediatek/aiot/bsp/aiot-tools",
+    url="https://gitlab.com/mediatek/aiot/bsp/genio-tools",
     packages=setuptools.find_packages(),
     entry_points={
         'console_scripts': [
@@ -27,9 +29,14 @@ setuptools.setup(
             'aiot-board=aiot.board:main',
             'aiot-efuse=aiot.efuse:main',
             'aiot-rpmb-write-key=aiot.rpmb:main',
+            'genio-config=aiot.config:main',
+            'genio-flash=aiot.flash:main',
+            'genio-board=aiot.board:main',
+            'genio-efuse=aiot.efuse:main',
+            'genio-rpmb-write-key=aiot.rpmb:main',
         ]},
     install_requires=[
-        'aiot-bootrom @ git+https://gitlab.com/mediatek/aiot/bsp/aiot-bootrom#aiot_bootrom',
+        'genio-bootrom',
         'gpiod==1.4.0',
         'oyaml',
         'packaging',
