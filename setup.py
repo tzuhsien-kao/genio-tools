@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
 # Copyright 2020 BayLibre, SAS.
+# Copyright 2022-2023 MediaTek Inc.
 
 import setuptools
 
@@ -18,8 +19,6 @@ setuptools.setup(
     maintainer="Pablo Sun",
     maintainer_email="pablo.sun@mediatek.com",
     description="Tools for flashing boards using MediaTek Genio SoCs",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
     url="https://gitlab.com/mediatek/aiot/bsp/genio-tools",
     packages=setuptools.find_packages(),
     entry_points={
