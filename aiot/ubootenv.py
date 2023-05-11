@@ -18,14 +18,33 @@ class UBootEnv:
     def add(self, name, value):
         self.env.append("{}={}".format(name, value))
 
+    def update_env_list(self, uboot_env_set):
+        '''
+        Takes a list of "KEY=VALUE" string and update/add u-boot env vars
+        accordings. This is primarily for the --uboot-env-set arg.
+        '''
+        if not uboot_env_set:
+            return
+        for pair in uboot_env_set:
+            try:
+                k, v = pair.split("=")
+                if not self.update(k, v):
+                    self.add(k, v)
+                    self.logger.info(f"Adding new uboot env: {k}={v}")
+            except ValueError:
+                self.logger.warn(f"Skipped malformed uboot env pair: '{pair}'")
+
     def update(self, name, value):
         new_env = []
+        updated = False
         for line in self.env:
             if line.startswith(name + '='):
                 new_env.append("{}={}".format(name, value))
+                updated = True
             else:
                 new_env.append(line)
         self.env = new_env
+        return updated
 
     def write_env(self, out, redund_id=-1):
             pos = out.tell()
@@ -57,6 +76,9 @@ class UBootEnv:
             out.write(struct.pack("I", crc))
 
     def write_binary(self, filename = "u-boot-env.bin", redund_offset=-1):
+        for line in self.env:
+            self.logger.debug(f"(env) {line.strip()}")
+
         with open(filename, "w+b") as out:
             redund_id = -1
 

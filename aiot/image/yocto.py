@@ -193,6 +193,8 @@ class YoctoImage:
         if self.args.serialno:
             env.add("serial#", self.args.serialno)
 
+        env.update_env_list(self.args.uboot_env_set)
+
         if len(self.kernel_dtbo_autoload) > 0:
             boot_conf = f"#conf-{self.kernel_dtb.replace('/', '_')}"
             list_dtbo = ""
