@@ -73,6 +73,10 @@ class Flash:
                 if binary == None:
                     binary = os.path.join(self.img.path, self.img.partitions[partition])
 
+                # u-boot-env.bin will be generated later. Skip checking.
+                if os.path.basename(binary) == 'u-boot-env.bin':
+                    continue
+
                 if not os.path.exists(binary):
                     self.logger.error(f"The binary file '{binary}' for partition '{partition}' doesn't exist")
                     return False
