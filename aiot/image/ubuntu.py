@@ -23,7 +23,6 @@ class UbuntuImage:
         self.ubuntu_edition = None
         self.ubuntu_version = None
         self.ubuntu_codename = None
-        self.mtk_aiot = None
         self.uboot_env_size = self.args.uboot_env_size
         offset_arg = self.args.uboot_env_redund_offset
         self.uboot_env_redund_offset = 0x100000 if offset_arg == -1 else offset_arg
@@ -68,8 +67,6 @@ class UbuntuImage:
                     self.ubuntu_codename = ubuntu_env['codename']
                 if 'version' in ubuntu_env:
                     self.ubuntu_version = ubuntu_env['version']
-                if 'mtk-aiot' in ubuntu_env:
-                    self.mtk_aiot = ubuntu_env['mtk-aiot']
 
             if 'uboot-env' in data:
                 uboot_env = data['uboot-env']
@@ -92,7 +89,7 @@ class UbuntuImage:
                 if 'num-of-eth' in ethernet:
                     self.num_of_eth = ethernet['num-of-eth']
 
-            self.tools_cfg = data.get('aiot-tools', None)
+            self.tools_cfg = data.get('genio-tools', None)
 
             if not 'partitions' in data:
                 self.logger.error(f"No partition layout found in {config_file}")
@@ -123,7 +120,7 @@ class UbuntuImage:
 
         if packaging.version.parse(min_version) > \
            packaging.version.parse(aiot.version):
-            self.logger.error("Your AIoT tools is too old. "
+            self.logger.error("Your Genio tools is too old. "
                 f"Please upgrade to version {min_version} or higher")
             sys.exit(-errno.ENOENT)
 
@@ -170,10 +167,9 @@ class UbuntuImage:
         return cls.parser.parse_args()
 
     def __str__(self):
-        return f"""AIoT Tools: v{aiot.version}
+        return f"""Genio Tools: v{aiot.version}
 Ubuntu Image:
 \tedition:  {self.ubuntu_edition}
 \tversion:  {self.ubuntu_version}
 \tcodename: {self.ubuntu_codename}
-\tmtk_aiot: {self.mtk_aiot}
 """
