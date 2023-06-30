@@ -138,9 +138,9 @@ class FlashTool(aiot.App):
             type = lambda num: int(num, 0),
             help = 'Enable U-Boot redundant env generation and assign offset of the redundant data. No redundant env by default.')
         group.add_argument('-e', '--uboot-env-set',
-            nargs='+',
+            action="append",
             metavar="KEY=VALUE",
-            help='Update or add U-Boot env variables using one or more KEY=VALUE pair. e.g. `-e boot_targets=ebbr ethaddr=00:11:22:33:44:55. '
+            help='Update or add U-Boot env variables as a KEY=VALUE pair. e.g. `-e boot_targets=ebbr -e ethaddr=00:11:22:33:44:55.'
                  'Use double quote for VALUE if there are space characters, e.g. `-e boot_prefixes="/ /boot /oemboot"`.')
 
     def add_firmware_group(self, parser):
