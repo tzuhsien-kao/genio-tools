@@ -215,8 +215,7 @@ class FlashTool(aiot.App):
                 self.logger.info("Try to automatically reset the board into DOWNLOAD mode...")
                 if platform.system() == 'Linux':
                     board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
-                                            args.gpio_power, args.gpio_chip,
-                                            serial = None)
+                                            args.gpio_power, args.gpio_chip)
                 elif platform.system() == 'Windows':
                     board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
                                             args.gpio_power, None,

@@ -64,11 +64,10 @@ def main():
     parser = app.parser
     logger = app.logger
 
-    if platform.system() == 'Windows':
-        parser.add_argument('-s', '--serial',
-                            type=str,
-                            default=None,
-                            help="Specify which board to connect to using FTDI serial. You can get serial with 'aiot-board list'")
+    parser.add_argument('-s', '--serial',
+                        type=str,
+                        default=None,
+                        help="Specify which board to connect to using FTDI serial. You can get serial with 'aiot-board list'")
 
     #parser.add_argument('command', type=str,
     #    choices=['reset', 'download', 'power', 'program-ftdi', 'list'],
