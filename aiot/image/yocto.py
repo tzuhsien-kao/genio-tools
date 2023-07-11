@@ -45,7 +45,11 @@ class YoctoImage:
                     self.logger.error(f"'{dtbo}' is not available. "
                                       f"Available DTBOs: {self.kernel_dtbo}")
                     sys.exit(-1)
-                self.kernel_dtbo_autoload.append(dtbo)
+
+                # avoid duplicated entries, kernel_dtbo_autoload may be already
+                # populated by u-boot-initial-env
+                if dtbo not in self.kernel_dtbo_autoload:
+                    self.kernel_dtbo_autoload.append(dtbo)
 
         if args.interactive:
             self.run_interactive_mode()
@@ -100,6 +104,35 @@ class YoctoImage:
                 "higher")
             sys.exit(-errno.ENOENT)
 
+    def load_initial_dtbo(self):
+        # Parse pre-defined dtbo list in u-boot-initial-env
+        # by setting KERNEL_DEVICETREE_OVERLAYS_AUTOLOAD options
+        # in Yocto's local.conf
+        initial_dtbo = set()
+        with open(os.path.join(self.path, 'u-boot-initial-env'), 'r') as fp:
+            config_string = '[config]\n' + fp.read()
+            config = configparser.ConfigParser(allow_no_value = True, strict = False)
+            config.read_string(config_string)
+            # There are two boot paths:
+            # FIT boot path takes 'boot_conf', while
+            # EFI boot path takes 'list_dtbo'.
+            # These two variables should be exactly the same,
+            # but we extract their union just in case u-boot-initial-env is
+            # updated manually
+            boot_conf = [d for d in config['config']['boot_conf'].split("#conf-") if d.endswith('.dtbo')]
+            list_dtbo = config['config']['list_dtbo'].split(' ')
+            self.logger.debug(f"u-boot-initial-env: boot_conf: dtbo={boot_conf}")
+            self.logger.debug(f"u-boot-initial-env: list_dtbo: dtbo={list_dtbo}")
+            initial_dtbo = set(boot_conf)
+            initial_dtbo = initial_dtbo.union(list_dtbo)
+
+        for dtbo in initial_dtbo:
+            if dtbo not in self.kernel_dtbo:
+                self.logger.error(f"'{dtbo}' is assigned in u-boot-initial-env but not available. "
+                                  f"Available DTBOs: {self.kernel_dtbo}")
+                sys.exit(-1)
+            self.kernel_dtbo_autoload.append(dtbo)
+
     def load_dtbos(self):
         dtbos = list(Path(self.path).glob("devicetree/*.dtbo"))
         self.kernel_dtbo = list(map(lambda dtbo: dtbo.name, dtbos))
@@ -124,6 +157,7 @@ class YoctoImage:
             self.logger.warn("Can't use --load-dtbo with secure boot enabled")
 
         self.load_dtbos()
+        self.load_initial_dtbo()
         self.load_config()
         self.check_min_version()
 
