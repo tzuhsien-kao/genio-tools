@@ -120,7 +120,9 @@ class YoctoImage:
             # but we extract their union just in case u-boot-initial-env is
             # updated manually
             boot_conf = [d for d in config['config']['boot_conf'].split("#conf-") if d.endswith('.dtbo')]
-            list_dtbo = config['config']['list_dtbo'].split(' ')
+            list_dtbo = []
+            if config['config']['list_dtbo']:
+                list_dtbo = config['config']['list_dtbo'].split(' ')
             self.logger.debug(f"u-boot-initial-env: boot_conf: dtbo={boot_conf}")
             self.logger.debug(f"u-boot-initial-env: list_dtbo: dtbo={list_dtbo}")
             initial_dtbo = set(boot_conf)
