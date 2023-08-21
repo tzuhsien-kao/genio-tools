@@ -17,42 +17,37 @@ def udev_wait():
 
 def add_bootstrap_group(parser):
     group = parser.add_argument_group('Bootstrap')
-    group.add_argument('-P', '--path', type=str, help='Path to image',
-        default=".")
+    group.add_argument('-P', '--path', type=str,
+                       help='Path to image', default=".")
     group.add_argument('--skip-bootstrap', action="store_true",
-        help="Don't bootstrap the board")
-    group.add_argument('--bootstrap', type=str, default='lk.bin',
-        metavar='lk.bin',
-        help='bootstrap binary used for flashing (default: lk.bin)')
-    group.add_argument('--bootstrap-sign', type=str, default='lk.sign',
-        metavar='lk.sign',
-        help='bootstrap binary signature used for flashing with DAA enabled (default: lk.sign)')
-    group.add_argument('--bootstrap-auth', type=str, default='auth_sv5.auth',
-        metavar='auth_sv5.auth',
-        help='authentication file used for flashing with DAA enabled (default: auth_sv5.auth)')
-    group.add_argument('--daa', action="store_true",
-        help="flash with DAA enabled")
-    group.add_argument('--bootstrap-addr', type=int, default=0x201000,
-        metavar='0x201000',
-        help='Address where the bootstrap binary will be loaded (default: 0x201000)')
-    group.add_argument('--bootstrap-mode', type=str, default='aarch64',
+                       help="Don't bootstrap the board")
+    group.add_argument('--addr', type=int, default=0x201000,
+                       metavar='0x201000',
+                       help='Download Agent load address')
+    group.add_argument('--arch', type=str, default='aarch64',
                        choices=['aarch64', 'aarch32'])
+    group.add_argument('--auth', type=str, default='auth_sv5.auth',
+                       metavar='auth_sv5.auth',
+                       help='Authenticate file when DAA enabled')
+    group.add_argument('--da', type=str, default="da.bin",
+                       metavar='da.bin',
+                       help='Download Agent file')
+    group.add_argument('--sign', type=str, default='da.sign',
+                       metavar='da.sign',
+                       help='Download Agent signing file when DAA enabled')
 
 def run_bootrom(args):
     bootrom_app = [
         'aiot-bootrom',
-        '--bootstrap', args.path + '/' + args.bootstrap,
-        '--bootstrap-addr', hex(args.bootstrap_addr),
-        '--bootstrap-mode', args.bootstrap_mode,
+        '--addr', hex(args.addr),
+        '--arch', args.arch,
+        '--da', args.da,
     ]
 
-    if args.daa:
-       bootrom_app.extend(['-s', args.bootstrap_sign, '-t', args.bootstrap_auth])
-    else:
-       # By default, if '-s' or '-t' are not defined,
-       # bootrom_tool will try to use auth_sv5.auth and lk.bin.sign
-       # To avoid bootrom_tool from sending these files, pass invalid values for -s and -t
-       bootrom_app.extend(['-s', '', '-t', ''])
+    if args.auth:
+        bootrom_app.extend(['--auth', args.auth])
+    if args.sign:
+        bootrom_app.extend(['--sign', args.sign])
 
     try:
         if platform.system() == 'Linux':
