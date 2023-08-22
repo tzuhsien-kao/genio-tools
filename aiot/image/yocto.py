@@ -13,6 +13,7 @@ import os
 import packaging.version
 import struct
 import sys
+import traceback
 import argparse
 
 import aiot
@@ -113,20 +114,33 @@ class YoctoImage:
             config_string = '[config]\n' + fp.read()
             config = configparser.ConfigParser(allow_no_value = True, strict = False)
             config.read_string(config_string)
-            # There are two boot paths:
-            # FIT boot path takes 'boot_conf', while
-            # EFI boot path takes 'list_dtbo'.
-            # These two variables should be exactly the same,
-            # but we extract their union just in case u-boot-initial-env is
-            # updated manually
-            boot_conf = [d for d in config['config']['boot_conf'].split("#conf-") if d.endswith('.dtbo')]
-            list_dtbo = []
-            if config['config']['list_dtbo']:
-                list_dtbo = config['config']['list_dtbo'].split(' ')
-            self.logger.debug(f"u-boot-initial-env: boot_conf: dtbo={boot_conf}")
-            self.logger.debug(f"u-boot-initial-env: list_dtbo: dtbo={list_dtbo}")
-            initial_dtbo = set(boot_conf)
-            initial_dtbo = initial_dtbo.union(list_dtbo)
+            # There are 3 possible dtbo loading lists:
+            # 1. FIT boot path takes 'boot_conf' in u-boot-env.bin, while
+            # 2. EFI boot path takes 'list_dtbo' in u-boot-env.bin;
+            # 3. In secure boot scenarios, the one embedded in the U-Boot device tree in fip.bin
+            #
+            # We only take care of 1 & 2, which allows dyanmic update of dtbo list.
+            # These two variables, 'boot_conf' and 'list_dtbo' should be exactly the same,
+            # but we extract their union just in case u-boot-initial-env is updated manually.
+            try:
+                boot_conf_value = config['config'].get('boot_conf', "")
+                boot_conf = []
+                if boot_conf_value:
+                    boot_conf = [d for d in boot_conf_value.split("#conf-") if d.endswith('.dtbo')]
+
+                list_dtbo_value = config['config'].get('list_dtbo', "")
+                list_dtbo = []
+                if list_dtbo_value:
+                    list_dtbo = list_dtbo_value.split(' ')
+
+                self.logger.debug(f"u-boot-initial-env: boot_conf: dtbo={boot_conf}")
+                self.logger.debug(f"u-boot-initial-env: list_dtbo: dtbo={list_dtbo}")
+                initial_dtbo = set(boot_conf)
+                initial_dtbo = initial_dtbo.union(list_dtbo)
+            except KeyError:
+                self.logger.warn("failed to parse boot_conf or list_dtbo from u-boot-initial-env")
+                self.logger.debug(traceback.format_exc())
+                initial_dtbo = set()
 
         for dtbo in initial_dtbo:
             if dtbo not in self.kernel_dtbo:
