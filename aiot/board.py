@@ -57,11 +57,14 @@ class BoardControl:
 
     def reset(self):
         self.reset_gpio.set_value(BoardControl.GPIO_HIGH)
+        time.sleep(0.1)
         self.reset_gpio.set_value(BoardControl.GPIO_LOW)
 
     def download_mode_boot(self):
         self.dl_gpio.set_value(BoardControl.GPIO_HIGH)
+        time.sleep(0.1)
         self.reset()
+        time.sleep(0.1)
         self.dl_gpio.set_value(BoardControl.GPIO_LOW)
 
     def power(self):
