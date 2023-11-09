@@ -25,7 +25,10 @@ def main():
 
     parser.add_argument('command', type=str,
         choices=['reset', 'download', 'power', 'program-ftdi'])
-    parser.add_argument('-c', '--gpio-chip', type=int, help='GPIOChip device')
+
+    if platform.system() == 'Linux':
+        parser.add_argument('-c', '--gpio-chip', type=int, help='GPIOChip device')
+
     parser.add_argument('-r', '--gpio-reset', type=int, default=1,
         help='GPIO to use to reset the SoC')
     parser.add_argument('-d', '--gpio-download', type=int, default=2,
