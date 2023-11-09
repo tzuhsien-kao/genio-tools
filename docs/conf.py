@@ -6,7 +6,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'AIoT tools manual'
+project = 'Genio tools manual'
 copyright = '2020, Fabien Parent'
 author = 'Fabien Parent <fparent@baylibre.com>'
 

@@ -100,7 +100,7 @@ class YoctoImage:
 
         if packaging.version.parse(min_version) > \
            packaging.version.parse(aiot.version):
-            self.logger.error("Your installation of AIoT tools is too old. "
+            self.logger.error("Your installation of Genio tools is too old. "
                 f"Please upgrade to version {min_version} or "
                 "higher")
             sys.exit(-errno.ENOENT)
@@ -307,7 +307,7 @@ class YoctoImage:
         return cls.parser.parse_args()
 
     def __str__(self):
-        return f"""AIoT Tools: v{aiot.version}
+        return f"""Genio Tools: v{aiot.version}
 Yocto Image:
 \tname:     {self.description} ({self.name})
 \tdistro:   {self.distro_name} {self.distro_version} ({self.distro})

@@ -8,7 +8,7 @@ import aiot
 from aiot.bootrom import run_bootrom, add_bootstrap_group
 
 app_description = """
-    AIoT efuse blowing tool
+    Genio efuse blowing tool
 
     This tool is used to blow efuse.
 """

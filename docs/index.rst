@@ -1,12 +1,12 @@
-AIoT tools manual
+Genio tools manual
 #################
 
 Overview
 ********
 
-AIoT tools is a set of tools to configure or interact with MediaTek boards.
-The AIoT tools are written in `Python`_. You need to have Python 3 installed on
-your system. The AIoT tools have been tested with Python >= 3.7, they may work
+Genio tools is a set of tools to configure or interact with MediaTek boards.
+The Genio tools are written in `Python`_. You need to have Python 3 installed on
+your system. The Genio tools have been tested with Python >= 3.7, they may work
 with older versions of Python, but are untested against these older Python
 releases.
 
@@ -14,7 +14,7 @@ For now the tools only work on Linux.
 
 .. _Python: https://www.python.org/
 
-AIoT tools is composed of 4 tools:
+Genio tools is composed of 4 tools:
 
 	* aiot-board: tool to control the board (reset / power / download signals)
 	* aiot-config: tool to setup your host system in order to be able to communicate with MediaTek's boards
@@ -23,7 +23,7 @@ AIoT tools is composed of 4 tools:
 Prerequisites
 *************
 
-In order to install the AIoT tools you must have `python3 >= 3.7` and
+In order to install the Genio tools you must have `python3 >= 3.7` and
 `pip3 >= 20.3` installed on your system. You can check their versions
 by running the following commands:
 
@@ -55,11 +55,11 @@ You can install `python3` and `pip3` from https://www.python.org/downloads/.
 .. note::
 
 	Make sure to check the "Add Python 3.X to PATH" in order to be able
-	to access the AIoT tools from any directory. If you installed Python
+	to access the Genio tools from any directory. If you installed Python
 	from the Windows Store, you will need to manually add Python's Scripts
 	to the PATH variable.
 
-AIoT tools are using fastboot to flash, so you also need to install the
+Genio tools are using fastboot to flash, so you also need to install the
 fastboot driver and the fastboot executable. Please follow the following
 guides to install the fastboot platform-tools and the fastboot driver:
 
@@ -87,7 +87,7 @@ for information on how to create one.
 Tools
 *****
 
-This section will describe the usage of every AIoT tool.
+This section will describe the usage of every Genio tool.
 
 aiot-board
 ==========

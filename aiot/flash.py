@@ -117,7 +117,7 @@ images = {
 }
 
 app_description = """
-    AIoT flashing tool
+    Genio flashing tool
 
     This tool is used to flash images.
 """

@@ -81,7 +81,7 @@ SUBSYSTEM=="gpio", MODE="0660", TAG+="uaccess"
             self.check_credentials()
 
 app_description = """
-    AIoT configuration tool
+    Genio configuration tool
 
     This tool is used to check the environment of the host machine.
 """

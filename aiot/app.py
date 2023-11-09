@@ -10,9 +10,9 @@ import textwrap
 import aiot
 
 class App: # pylint: disable=too-few-public-methods
-    """ Common code for AIoT tools"""
+    """ Common code for Genio tools"""
 
-    def __init__(self, description="AIoT tool"):
+    def __init__(self, description="Genio tool"):
         self.logger = logging.getLogger('aiot')
         self.parser = argparse.ArgumentParser(
             description=textwrap.dedent(description),

@@ -7,7 +7,7 @@ import aiot
 from aiot.bootrom import run_bootrom, add_bootstrap_group
 
 app_description = """
-    AIoT RPMB key provisioning tool
+    Genio RPMB key provisioning tool
 
     This tool is used to write the RPMB key.
 """
