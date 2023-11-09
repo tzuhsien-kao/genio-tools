@@ -11,25 +11,20 @@ class BoardControl:
     GPIO_LOW = 0
     GPIO_HIGH = 1
 
-    def __init__(self, reset_gpio, dl_gpio, pwr_gpio, chip_id = None):
+    def __init__(self, reset_gpio, dl_gpio, pwr_gpio, chip_id = None, serial = None):
         self.logger = logging.getLogger('aiot')
         self.rst_gpio = reset_gpio
         self.dl_gpio = dl_gpio
         self.pwr_gpio = pwr_gpio
+        self.serial = serial
 
         self._init_cbus()
 
     def _init_cbus(self, chip_id = None):
-        '''
-        Excerpt from AN232R-01_FT232RBitBangModes.pdf
-        section 1.4 CBUS Bit Bang Mode:
-
-        FT_SetBitMode also provides the means to write data to the CBUS pins.
-        The upper nibble of the Mask parameter controls which pins are inputs or
-        outputs, while the lower nibble controls which of the outputs are high or low.  
-        '''
-        ftdi = FtdiControl()
-        self.dev = ftdi.find_device()
+        if self.serial:
+            self.logger.debug(f"connect to {self.serial}")
+        ftdi = FtdiControl(self.serial)
+        self.dev = ftdi.find_device(self.serial)
         return 0
 
     def mask_high(self):
@@ -42,7 +37,17 @@ class BoardControl:
         return mask
 
     def _set_gpio(self, rst, dl):
+        '''
+        Excerpt from AN232R-01_FT232RBitBangModes.pdf
+        section 1.4 CBUS Bit Bang Mode:
+
+        FT_SetBitMode also provides the means to write data to the CBUS pins.
+        The upper nibble of the Mask parameter controls which pins are inputs or
+        outputs, while the lower nibble controls which of the outputs are high or low.
+        '''
         mask = self.mask_high() | (rst << self.rst_gpio) | (dl << self.dl_gpio)
+        # 0x20 is FT_BITMODE_CBUS_BITBANG,
+        # please note that the desired pin state are stored in "mask"
         self.dev.setBitMode(mask, 0x20)
 
     def reset(self):
