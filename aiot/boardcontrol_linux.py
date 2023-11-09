@@ -11,7 +11,7 @@ class BoardControl:
     GPIO_LOW = 0
     GPIO_HIGH = 1
 
-    def __init__(self, reset_gpio, dl_gpio, pwr_gpio, chip_id = None):
+    def __init__(self, reset_gpio, dl_gpio, pwr_gpio, chip_id = None, serial = None):
         chip = self.get_gpiochip(chip_id)
 
         config = gpiod.line_request()
@@ -27,6 +27,9 @@ class BoardControl:
         self.pwr_gpio.request(config)
 
         self.logger = logging.getLogger('aiot')
+
+        if serial:
+            self.logger.warn("select board by serial is not supported now. Please use GPIO chip id instead.")
 
     def get_gpiochip(self, chip_id = None):
         known_devices = []
