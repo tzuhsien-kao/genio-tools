@@ -19,7 +19,7 @@
 # https://www.ftdichip.com/old2020/Support/Utilities.htm#FT_PROG
 
 import logging
-import sys
+import time
 import ftd2xx as ftd
 from enum import IntEnum
 
@@ -55,10 +55,10 @@ class FtdiControl:
             d = ftd.openEx(serial.encode('utf-8'))
         else:
             devices = ftd.listDevices()
-            if len(devices) == 0:
+            if not devices:
                 raise RuntimeError("Cannot find any FTDI device")
             elif len(devices) > 1:
-                raise RuntimeError("More than one FTDI device connected")
+                raise RuntimeError("More than one FTDI device connected. Assign device by serial with option '-s SERIAL'.")
             d = ftd.open(0)
 
         com = d.getComPortNumber()
@@ -99,7 +99,8 @@ class FtdiControl:
         device.resetDevice()
         device.cyclePort()
         device.close()
-        self.logger.info("FTDI device programmed successfully")
+        self.logger.info("FTDI device programmed successfully, resetting device")
+        time.sleep(3)
 
 
 if __name__ == "__main__":
