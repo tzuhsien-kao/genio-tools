@@ -31,7 +31,7 @@ class YoctoImage:
         self.machine = None
         self.kernel_dtbo = None
         self.kernel_dtbo_autoload = []
-        self.kernel_dtb = None
+        self.kernel_dtbs = None
         self.logger = logging.getLogger('aiot')
         self.groups = []
 
@@ -166,7 +166,7 @@ class YoctoImage:
             if 'DISTRO_CODENAME' in data:
                 self.distro_codename = data['DISTRO_CODENAME']
             self.machine = data['MACHINE']
-            self.kernel_dtb = data['KERNEL_DEVICETREE']
+            self.kernel_dtbs = data['KERNEL_DEVICETREE'].split(' ')
             self.distro_features = data['DISTRO_FEATURES']
 
         if self.args.load_dtbo and 'secure-boot' in self.distro_features:
@@ -196,7 +196,7 @@ class YoctoImage:
         env.update_env_list(self.args.uboot_env_set)
 
         if len(self.kernel_dtbo_autoload) > 0:
-            boot_conf = f"#conf-{self.kernel_dtb.replace('/', '_')}"
+            boot_conf = f"#conf-{self.kernel_dtbs[0].replace('/', '_')}"
             list_dtbo = ""
             for dtbo in self.kernel_dtbo_autoload:
                 boot_conf += f"#conf-{dtbo}"
