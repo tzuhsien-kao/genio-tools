@@ -36,12 +36,6 @@ class Fastboot:
 
         subprocess.run([self.bin, "erase", partition], check=True)
 
-    def continve(self):
-        if self.dry_run:
-            return
-
-        subprocess.run([self.bin, "continue"], check=True)
-
     def reboot(self):
         if self.dry_run:
             return
