@@ -43,6 +43,7 @@ setuptools.setup(
         'pyusb',
         'pyudev;platform_system=="Linux"',
         'ftd2xx;platform_system=="Windows"',
+        'fastboot-log-parser',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
