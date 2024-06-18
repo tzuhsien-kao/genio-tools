@@ -84,7 +84,8 @@ class Fastboot:
         else:
             subprocess.run([self.bin, "erase", partition], check=True)
 
-    def continve(self):
+    # continue is a python keyword, so we use continuer instead
+    def continuer(self):
         if self.dry_run:
             return
         subprocess.run([self.bin, "continue"], check=True)
