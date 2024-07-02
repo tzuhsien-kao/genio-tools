@@ -2,113 +2,20 @@
 # Copyright 2020 (c) BayLibre, SAS
 # Author: Fabien Parent <fparent@baylibre.com>
 
-import errno
 import logging
-import sys
-import pathlib
 import platform
-import os
+import signal
+import threading
 
 import aiot
 import aiot.image
 
-from aiot.bootrom import run_bootrom, add_bootstrap_group
+from aiot.bootrom import add_bootstrap_group
+from .flash_worker import Flash
+from .flash_daemon import GenioFlashDaemon
 
 if platform.system() == 'Linux':
     import pyudev
-
-from os.path import exists
-
-class Flash:
-    def __init__(self, image, dry_run=False):
-        self.img = image
-        self.fastboot = aiot.Fastboot(dry_run=dry_run)
-        self.logger = logging.getLogger('aiot')
-
-    def flash_partition(self, partition, filename):
-        def has_method(obj, method):
-            return callable(getattr(obj, method, None))
-
-        if has_method(self.img, 'generate_file'):
-            self.img.generate_file(partition, filename)
-
-        path = pathlib.Path(self.img.path) / filename
-        self.fastboot.flash(partition, str(path))
-
-    def erase_partition(self, partition):
-        self.fastboot.erase(partition)
-
-    def flash_group(self, group):
-        actions = self.img.groups[group]
-        if 'erase' in actions:
-            for partition in actions['erase']:
-                if not partition in self.img.partitions:
-                    self.logger.error(f"invalid partition {partition}")
-                    return
-                self.erase_partition(partition)
-
-        if 'flash' in actions:
-            for partition in actions['flash']:
-                if not partition in self.img.partitions:
-                    self.logger.error(f"invalid partition {partition}")
-                    return
-                self.flash_partition(partition, self.img.partitions[partition])
-
-    def check(self, targets):
-        if len(targets) == 0 and 'all' not in self.img.groups:
-            self.logger.error("No target specified, and no 'all' default target available")
-            return False
-
-        for target in targets:
-            partition = target
-            binary = None
-            if ':' in target:
-                partition, binary = target.split(':')
-
-            if target not in self.img.groups and partition not in self.img.partitions:
-                self.logger.error(f"Invalid target '{target}'")
-                return False
-
-            if partition in self.img.partitions:
-                if binary == None:
-                    binary = os.path.join(self.img.path, self.img.partitions[partition])
-
-                # u-boot-env.bin will be generated later. Skip checking.
-                if os.path.basename(binary) == 'u-boot-env.bin':
-                    continue
-
-                if not os.path.exists(binary):
-                    self.logger.error(f"The binary file '{binary}' for partition '{partition}' doesn't exist")
-                    return False
-
-        return True
-
-    def flash(self, targets):
-        if len(targets) == 0:
-            if 'all' in self.img.groups:
-                targets = ["all"]
-            else:
-                self.logger.error("No target specified, and no 'all' default target available")
-
-        for target in targets:
-            partition = target
-            binary = None
-            if ':' in target:
-                partition, binary = target.split(':')
-
-            if target in self.img.groups:
-                self.flash_group(target)
-                continue
-
-            if partition in self.img.partitions:
-                if binary is None:
-                    binary = self.img.partitions[target]
-                self.flash_partition(partition, binary)
-                continue
-
-            self.logger.error(f"target '{target}' does not exists")
-#            list targets here
-        self.fastboot.reboot()
 
 images = {
     'Yocto': aiot.image.YoctoImage,
@@ -151,46 +58,40 @@ class FlashTool(aiot.App):
                  "which is FTDI serial connected to UART0.")
 
     def setup_parser(self):
-        self.parser.add_argument('targets', type=str, nargs='*',
-            help='Name of the partition or group of partition to flash')
+        self.parser.add_argument('targets', type=str, nargs='*', help='Name of the partition or group of partition to flash')
         self.parser.add_argument('--dry-run', action="store_true")
+        self.parser.add_argument('--daemon', action="store_true", help="Run as a daemon")
+        self.parser.add_argument('--workers', type=int, default=2, help='Number of workers in daemon mode')
+        self.parser.add_argument('--host', type=str, default='localhost', help='Daemon host address')
+        self.parser.add_argument('--port', type=int, help='Socket port for daemon mode')
 
         # Bootstrap
         add_bootstrap_group(self.parser)
-
         self.add_firmware_group(self.parser)
         self.add_uboot_group(self.parser)
+
+        def add_gpio_arguments(group):
+            group.add_argument('-r', '--gpio-reset', type=int, default=1, help='GPIO to use to reset the SoC')
+            group.add_argument('-d', '--gpio-download', type=int, default=2, help='GPIO to use to put the SoC in download mode (KPCOL0 pin)')
+            group.add_argument('-p', '--gpio-power', type=int, default=0, help='GPIO to use to power on the SoC')
 
         if platform.system() == 'Linux':
             group = self.parser.add_argument_group('Board Control (using libgpiod)')
             group.add_argument('-c', '--gpio-chip', type=int, help='GPIOChip device')
-            group.add_argument('-r', '--gpio-reset', type=int, default=1,
-                help='GPIO to use to reset the SoC')
-            group.add_argument('-d', '--gpio-download', type=int, default=2,
-                help='GPIO to use to put the SoC in download mode (KPCOL0 pin)')
-            group.add_argument('-p', '--gpio-power', type=int, default=0,
-                help='GPIO to use to power on the SoC')
+            add_gpio_arguments(group)
 
-        if platform.system() == 'Windows':
+        elif platform.system() == 'Windows':
             group = self.parser.add_argument_group('Board Control (using ftd2xx driver)')
             group.add_argument('-c', '--ftdi-serial', '-s', type=str, default=None, help='Serial number of the board control COM port. This should be the serial reported by "aiot-board list".')
-            group.add_argument('-r', '--gpio-reset', type=int, default=1,
-                help='GPIO to use to reset the SoC')
-            group.add_argument('-d', '--gpio-download', type=int, default=2,
-                help='GPIO to use to put the SoC in download mode (KPCOL0 pin)')
-            group.add_argument('-p', '--gpio-power', type=int, default=0,
-                help='GPIO to use to power on the SoC')
+            add_gpio_arguments(group)
 
         for name, image in images.items():
             image.define_local_parser(self.parser)
-
-        for name, image in images.items():
             image_group = self.parser.add_argument_group(name)
             image.setup_parser(image_group)
 
     def execute(self):
         image = None
-        chip = None
 
         args = super().execute()
 
@@ -201,43 +102,37 @@ class FlashTool(aiot.App):
                 break
 
         if image is None:
-            self.logger.error("No image found")
+            logging.error("No image found")
             return
 
         print(image)
 
-        flasher = aiot.Flash(image, dry_run=args.dry_run)
-        if not flasher.check(args.targets):
-            return
+        if args.daemon:
+            self.run_daemon(image, args)
+        else:
+            self.run_worker(image, args)
 
-        if not args.dry_run:
-            try:
-                if platform.system() == 'Linux':
-                    board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
-                                            args.gpio_power, args.gpio_chip)
-                elif platform.system() == 'Windows':
-                    board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
-                                            args.gpio_power, None,
-                                            serial = args.ftdi_serial)
-                board.download_mode_boot()
-            except RuntimeError as r:
-                self.logger.warning(r)
-                self.logger.warning("Unable to find and reset the board. Possible causes are:\n"
-                                    "1. This is not a Genio 350/700 EVK, nor a Pumpkin board.\n"
-                                    "2. The board port UART0 is not connected.\n"
-                                    "3. The UART0 port is being opened by another tool, such as TeraTerm on Windows.\n"
-                                    "You can now manually reset the board into DOWNLOAD mode.\n")
-                self.logger.info("Continue flashing...")
-            except Exception as e:
-                self.logger.warning(str(e))
-                self.logger.warning("Board control failed. This might be caused by TTY/COM port being used by another process, "
-                                    "such as TeraTerm or Putty on Windows. You could try manually put the board in DOWNLOAD mode. Continue flashing...")
-                self.logger.info("Continue flashing...")
-        if not args.skip_bootstrap and not args.dry_run:
-            run_bootrom(args)
+    def run_daemon(self, image, args):
+        """Starts the daemon process and a worker processes."""
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-        flasher.flash(args.targets)
+        # Launch daemon mode
+        daemon = GenioFlashDaemon(args, image)
+        # Cleanup legacy aiot tools
+        daemon.cleanup_aiot_tools()
+        worker_thread = threading.Thread(target=daemon.start_workers)
+        worker_thread.start()
+        daemon.run()
+        worker_thread.join()
+
+    def run_worker(self, image, args):
+        # We need to initialize the Flash class before calling `worker_thread` to avoid creating two instances in a single process.
+        flasher = Flash(image=image, dry_run=args.dry_run, daemon=False, verbose=args.verbose)
+        flasher.flash_worker(image=image, args=args)
 
 def main():
     tool = FlashTool()
     tool.execute()
+
+if __name__ == "__main__":
+    main()
