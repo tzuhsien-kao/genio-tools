@@ -57,6 +57,13 @@ def run_bootrom(args):
     try:
         if platform.system() == 'Linux':
             udev_wait()
-        subprocess.run(bootrom_app, check=True)
+        if args.daemon:
+            result = subprocess.run(bootrom_app, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            return result.stdout
+        else:
+            subprocess.run(bootrom_app, check=True)
+
+    except subprocess.CalledProcessError as e:
+        return e.stdout
     except KeyboardInterrupt:
         pass
