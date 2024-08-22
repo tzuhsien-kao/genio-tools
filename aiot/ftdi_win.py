@@ -20,8 +20,15 @@
 
 import logging
 import time
-import ftd2xx as ftd
 from enum import IntEnum
+
+# It is possible that FTDI driver DLL is not installed.
+# In this case we should simply disable board control
+# functions, instead of crash and exit.
+try:
+    import ftd2xx as ftd
+except Exception as e:
+    ftd = None
 
 class FT232R_CBUS_OPTIONS(IntEnum):
     '''
@@ -42,15 +49,22 @@ class FT232R_CBUS_OPTIONS(IntEnum):
     FT_232R_CBUS_BITBANG_RD = 0x0C
 
 def get_model(t):
-    return ftd.defines.Device(t).name
+    if ftd:
+        return ftd.defines.Device(t).name
+    else:
+        return ""
 
 class FtdiControl:
     def __init__(self, serial = None):
         self.logger = logging.getLogger('aiot')
-        self.logger.debug(f"FTDI D2xx library version: {ftd.getLibraryVersion()}")
+        if ftd:
+            self.logger.debug(f"FTDI D2xx library version: {ftd.getLibraryVersion()}")
         self.serial = serial
 
     def find_device(self, serial = None):
+        if not ftd:
+            raise RuntimeError("FTDI D2xx library not found")
+
         if serial:
             d = ftd.openEx(serial.encode('utf-8'))
         else:
@@ -72,6 +86,9 @@ class FtdiControl:
         '''
         Print a list of iSerial of all found FTDI devices to STDOUT
         '''
+        if not ftd:
+            return
+
         ftd.createDeviceInfoList()
         for serial in ftd.listDevices():
             print(str(serial, 'utf-8'))
