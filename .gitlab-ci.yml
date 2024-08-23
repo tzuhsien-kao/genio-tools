@@ -5,10 +5,14 @@ build_wheels:
   script:
     - pip install build setuptools_scm
     - python -m build --wheel --no-isolation
+  artifacts:
+    paths:
+      - dist/*.whl
   only:
     - main
     - next
     - tags
+    - merge_requests
 
 pypi-official:
   stage: deploy
@@ -35,7 +39,8 @@ pypi-dev:
       - dist/*.whl
   only:
     - main
-    - next.*
+    - next
+    - merge_requests
 
 build_pages:
   stage: build
