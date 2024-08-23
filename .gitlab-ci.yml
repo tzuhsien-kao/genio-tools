@@ -5,7 +5,6 @@ build_wheels:
   script:
     - pip install build setuptools_scm
     - python -m build --wheel --no-isolation
-    - 
   only:
     - main
     - next
