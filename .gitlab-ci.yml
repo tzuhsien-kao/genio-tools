@@ -7,7 +7,7 @@ build_wheels:
     - python -m build --wheel --no-isolation
   only:
     - main
-    - next.*
+    - next
     - tags
 
 pypi-official:
