@@ -3,8 +3,9 @@ image: python:latest
 build_wheels:
   stage: build
   script:
-    - pip install build
+    - pip install build setuptools_scm
     - python -m build --wheel --no-isolation
+    - 
   only:
     - main
     - next
