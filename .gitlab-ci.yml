@@ -1,6 +1,19 @@
 image: python:latest
 
-run:
+pypi:
+  stage: deploy
+  script:
+    - pip install -U twine
+    - python setup.py bdist_wheel
+    - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__ twine upload dist/*
+  artifacts:
+    paths:
+      - dist/*.whl
+  only:
+  - tags
+
+pypi-dev:
+  stage: deploy
   script:
     - pip install twine
     - python setup.py bdist_wheel
@@ -10,6 +23,7 @@ run:
       - dist/*.whl
   only:
   - main
+  - dev.*
 
 build_pages:
   stage: build
@@ -27,5 +41,6 @@ pages:
   artifacts:
     paths:
     - public
+  when: manual
   only:
   - main
