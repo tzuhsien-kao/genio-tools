@@ -1,29 +1,40 @@
 image: python:latest
 
-pypi:
+build_wheels:
+  stage: build
+  script:
+    - pip install build
+    - python -m build --wheel --no-isolation
+  artifacts:
+    paths:
+      - dist/*.whl
+  only:
+    - main
+    - next.*
+    - tags
+
+pypi-official:
   stage: deploy
   script:
     - pip install -U twine
-    - python setup.py bdist_wheel
     - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__ twine upload dist/*
   artifacts:
     paths:
       - dist/*.whl
   only:
-  - tags
+    - tags
 
 pypi-dev:
   stage: deploy
   script:
     - pip install twine
-    - python setup.py bdist_wheel
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi dist/*
   artifacts:
     paths:
       - dist/*.whl
   only:
-  - main
-  - next.*
+    - main
+    - next.*
 
 build_pages:
   stage: build
@@ -33,7 +44,7 @@ build_pages:
   only:
   - merge_requests
 
-pages:
+publish_pages:
   stage: deploy
   script:
   - pip install -U sphinx sphinx-rtd-theme sphinx-prompt
