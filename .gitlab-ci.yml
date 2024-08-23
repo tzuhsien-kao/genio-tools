@@ -5,9 +5,6 @@ build_wheels:
   script:
     - pip install build
     - python -m build --wheel --no-isolation
-  artifacts:
-    paths:
-      - dist/*.whl
   only:
     - main
     - next.*
@@ -15,6 +12,8 @@ build_wheels:
 
 pypi-official:
   stage: deploy
+  needs:
+    - build_wheels
   script:
     - pip install -U twine
     - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__ twine upload dist/*
@@ -26,6 +25,8 @@ pypi-official:
 
 pypi-dev:
   stage: deploy
+  needs:
+    - build_wheels
   script:
     - pip install twine
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi dist/*
@@ -54,4 +55,4 @@ publish_pages:
     - public
   when: manual
   only:
-  - main
+    - main
