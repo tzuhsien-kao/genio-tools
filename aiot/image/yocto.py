@@ -56,7 +56,7 @@ class YoctoImage:
             self.run_interactive_mode()
 
     def generate_file(self, partition, filename):
-        if partition == 'mmc0boot1':
+        if filename == 'u-boot-env.bin':
             self.generate_uboot_env()
 
     def run_interactive_mode(self):
