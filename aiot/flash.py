@@ -20,10 +20,11 @@ if platform.system() == 'Linux':
 from os.path import exists
 
 class Flash:
-    def __init__(self, image, dry_run=False):
+    def __init__(self, image, dry_run=False, skip_erase=False):
         self.img = image
         self.fastboot = aiot.Fastboot(dry_run=dry_run)
         self.logger = logging.getLogger('aiot')
+        self.skip_erase = skip_erase
 
     def flash_partition(self, partition, filename):
         def has_method(obj, method):
@@ -40,12 +41,13 @@ class Flash:
 
     def flash_group(self, group):
         actions = self.img.groups[group]
-        if 'erase' in actions:
-            for partition in actions['erase']:
-                if not partition in self.img.partitions:
-                    self.logger.error(f"invalid partition {partition}")
-                    return
-                self.erase_partition(partition)
+        if not self.skip_erase:
+            if 'erase' in actions:
+                for partition in actions['erase']:
+                    if not partition in self.img.partitions:
+                        self.logger.error(f"invalid partition {partition}")
+                        return
+                    self.erase_partition(partition)
 
         if 'flash' in actions:
             for partition in actions['flash']:
@@ -154,6 +156,8 @@ class FlashTool(aiot.App):
         self.parser.add_argument('targets', type=str, nargs='*',
             help='Name of the partition or group of partition to flash')
         self.parser.add_argument('--dry-run', action="store_true")
+        self.parser.add_argument('--skip-erase', action="store_true",
+            help='Skip erasing partitions before flash')
 
         # Bootstrap
         add_bootstrap_group(self.parser)
@@ -206,7 +210,7 @@ class FlashTool(aiot.App):
 
         print(image)
 
-        flasher = aiot.Flash(image, dry_run=args.dry_run)
+        flasher = aiot.Flash(image, dry_run=args.dry_run, skip_erase=args.skip_erase)
         if not flasher.check(args.targets):
             return
 
