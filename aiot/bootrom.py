@@ -1,5 +1,5 @@
 import platform
-import subprocess
+import aiot_bootrom.bootrom
 
 if platform.system() == 'Linux':
     import pyudev
@@ -54,9 +54,6 @@ def run_bootrom(args):
        # To avoid bootrom_tool from sending these files, pass invalid values for -s and -t
        bootrom_app.extend(['-s', '', '-t', ''])
 
-    try:
-        if platform.system() == 'Linux':
-            udev_wait()
-        subprocess.run(bootrom_app, check=True)
-    except KeyboardInterrupt:
-        pass
+    if platform.system() == 'Linux':
+        udev_wait()
+    return aiot_bootrom.bootrom.run(bootrom_app)

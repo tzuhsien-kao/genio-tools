@@ -35,7 +35,7 @@ setuptools.setup(
             'genio-rpmb-write-key=aiot.rpmb:main',
         ]},
     install_requires=[
-        'genio-bootrom',
+        'genio-bootrom>=1.1.11',
         'gpiod==1.4.0',
         'oyaml',
         'packaging',
