@@ -6,6 +6,7 @@ from pathlib import Path
 import configparser
 import oyaml
 import argparse
+import logging
 
 import aiot
 
@@ -38,8 +39,16 @@ class AndroidImage:
             for name in partitions:
                 partition = partitions[name]
                 if 'file' in partition:
-                    self.groups["all"]["flash"].append(name)
-                    self.partitions[name] = partition['file']
+                    ignore_file_not_found = partition.get('ignoreFileNotFound', False)
+                    file_path = Path(self.path) / partition['file']
+                    if file_path.exists():
+                        self.groups["all"]["flash"].append(name)
+                        self.partitions[name] = partition['file']
+                    elif ignore_file_not_found:
+                        logging.warning(f"{file_path} not found for {name} but is ignorable. Skipping ...")
+                    else:
+                        logging.error(f"{file_path} not found for {name}")
+
 
         self.generate_uboot_env()
 
