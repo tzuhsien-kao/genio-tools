@@ -33,9 +33,12 @@ setuptools.setup(
             'genio-board=aiot.board:main',
             'genio-efuse=aiot.efuse:main',
             'genio-rpmb-write-key=aiot.rpmb:main',
+            'genio-multi-download-cli=aiot.multi_download_cli:main',
         ]},
     install_requires=[
         'genio-bootrom>=1.1.11',
+        'windows-curses;platform_system=="Windows"',
+        'keyboard',
         'gpiod==1.4.0',
         'oyaml',
         'packaging',
