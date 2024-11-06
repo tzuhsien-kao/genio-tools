@@ -56,4 +56,12 @@ def run_bootrom(args):
 
     if platform.system() == 'Linux':
         udev_wait()
-    return aiot_bootrom.bootrom.run(bootrom_app)
+    if args.daemon:
+        try:
+            return aiot_bootrom.bootrom.check_output(bootrom_app)
+        except subprocess.CalledProcessError as e:
+            return e.stdout
+        except KeyboardInterrupt:
+            pass
+    else:
+        return aiot_bootrom.bootrom.run(bootrom_app)
