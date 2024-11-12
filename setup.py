@@ -39,10 +39,12 @@ setuptools.setup(
         'gpiod==1.4.0',
         'oyaml',
         'packaging',
+        'psutil',
         'pyftdi',
         'pyusb',
         'pyudev;platform_system=="Linux"',
         'ftd2xx;platform_system=="Windows"',
+        'fastboot-log-parser',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
