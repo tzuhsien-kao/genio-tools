@@ -5,17 +5,20 @@
 
 import logging
 import platform
-
+import signal
+import threading
 import aiot
 import aiot.image
 
-from aiot.bootrom import run_bootrom, add_bootstrap_group
+from aiot.bootrom import add_bootstrap_group
+from aiot.bootrom import run_bootrom
+from aiot.flash_daemon import GenioFlashDaemon
+from aiot.flash_worker import bootrom_log_parser
 
 if platform.system() == 'Linux':
     import pyudev
 
-from os.path import exists
-
+# Supported image types
 images = {
     'Yocto': aiot.image.YoctoImage,
     'Android': aiot.image.AndroidImage,
@@ -30,10 +33,11 @@ app_description = """
 
 class FlashTool(aiot.App):
     def __init__(self):
-        aiot.App.__init__(self, description=app_description)
+        super().__init__(description=app_description)
         self.setup_parser()
 
     def add_uboot_group(self, parser):
+        # Add U-Boot related arguments to the parser.
         group = parser.add_argument_group('U-Boot')
         group.add_argument('--uboot-env-size',
             default = 4096,
@@ -50,100 +54,94 @@ class FlashTool(aiot.App):
                  'Use double quote for VALUE if there are space characters, e.g. `-e boot_prefixes="/ /boot /oemboot"`.')
 
     def add_firmware_group(self, parser):
+        # Add firmware related arguments to the parser.
         group = parser.add_argument_group('Firmware')
         group.add_argument('--serialno', type=str, \
             help="Customize serial number used in adb and fastboot, e.g. the result of 'adb devices'\n"
                  "This is not the serial used by 'aiot-board -s' and 'aiot-flash -s',"
                  "which is FTDI serial connected to UART0.")
 
+    def add_gpio_arguments(self, group):
+        # Add GPIO related arguments to the specified group.
+        group.add_argument('-r', '--gpio-reset', type=int, default=1, help='GPIO to use to reset the SoC')
+        group.add_argument('-d', '--gpio-download', type=int, default=2, help='GPIO to use to put the SoC in download mode (KPCOL0 pin)')
+        group.add_argument('-p', '--gpio-power', type=int, default=0, help='GPIO to use to power on the SoC')
+
     def setup_parser(self):
-        self.parser.add_argument('targets', type=str, nargs='*',
-            help='Name of the partition or group of partition to flash')
+        # Setup command line argument parser.
+        self.parser.add_argument('targets', type=str, nargs='*', help='Name of the partition or group of partition to flash')
         self.parser.add_argument('--dry-run', action="store_true")
+        self.parser.add_argument('--daemon', action="store_true", help="Run as a daemon")
+        self.parser.add_argument('--workers', type=int, default=2, help='Number of workers in daemon mode')
+        self.parser.add_argument('--host', type=str, default='localhost', help='Daemon host address')
+        self.parser.add_argument('--port', type=int, help='Socket port for daemon mode')
 
         # Bootstrap
         add_bootstrap_group(self.parser)
-
         self.add_firmware_group(self.parser)
         self.add_uboot_group(self.parser)
 
         if platform.system() == 'Linux':
             group = self.parser.add_argument_group('Board Control (using libgpiod)')
             group.add_argument('-c', '--gpio-chip', type=int, help='GPIOChip device')
-            group.add_argument('-r', '--gpio-reset', type=int, default=1,
-                help='GPIO to use to reset the SoC')
-            group.add_argument('-d', '--gpio-download', type=int, default=2,
-                help='GPIO to use to put the SoC in download mode (KPCOL0 pin)')
-            group.add_argument('-p', '--gpio-power', type=int, default=0,
-                help='GPIO to use to power on the SoC')
-
-        if platform.system() == 'Windows':
+            self.add_gpio_arguments(group)
+        elif platform.system() == 'Windows':
             group = self.parser.add_argument_group('Board Control (using ftd2xx driver)')
             group.add_argument('-c', '--ftdi-serial', '-s', type=str, default=None, help='Serial number of the board control COM port. This should be the serial reported by "aiot-board list".')
-            group.add_argument('-r', '--gpio-reset', type=int, default=1,
-                help='GPIO to use to reset the SoC')
-            group.add_argument('-d', '--gpio-download', type=int, default=2,
-                help='GPIO to use to put the SoC in download mode (KPCOL0 pin)')
-            group.add_argument('-p', '--gpio-power', type=int, default=0,
-                help='GPIO to use to power on the SoC')
+            self.add_gpio_arguments(group)
 
+        # Setup image-specific arguments
         for name, image in images.items():
             image.define_local_parser(self.parser)
-
-        for name, image in images.items():
             image_group = self.parser.add_argument_group(name)
             image.setup_parser(image_group)
 
     def execute(self):
-        image = None
-        chip = None
-
+        # Execute the flashing process based on parsed arguments.
         args = super().execute()
-
-        for name, img in images.items():
-            if img.detect(args.path):
-                image = img(args)
-                image.setup_local_parser()
-                break
+        image = self.detect_image(args)
 
         if image is None:
-            self.logger.error("No image found")
+            logging.error("No image found")
             return
 
         print(image)
 
-        flasher = aiot.Flash(image, dry_run=args.dry_run)
-        if not flasher.check(args.targets):
-            return
+        if args.daemon:
+            self.run_daemon(image, args)
+        else:
+            self.run_worker(image, args)
 
-        if not args.dry_run:
-            try:
-                if platform.system() == 'Linux':
-                    board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
-                                            args.gpio_power, args.gpio_chip)
-                elif platform.system() == 'Windows':
-                    board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
-                                            args.gpio_power, None,
-                                            serial = args.ftdi_serial)
-                board.download_mode_boot()
-            except RuntimeError as r:
-                self.logger.warning(r)
-                self.logger.warning("Unable to find and reset the board. Possible causes are:\n"
-                                    "1. This is not a Genio 350/700 EVK, nor a Pumpkin board.\n"
-                                    "2. The board port UART0 is not connected.\n"
-                                    "3. The UART0 port is being opened by another tool, such as TeraTerm on Windows.\n"
-                                    "You can now manually reset the board into DOWNLOAD mode.\n")
-                self.logger.info("Continue flashing...")
-            except Exception as e:
-                self.logger.warning(str(e))
-                self.logger.warning("Board control failed. This might be caused by TTY/COM port being used by another process, "
-                                    "such as TeraTerm or Putty on Windows. You could try manually put the board in DOWNLOAD mode. Continue flashing...")
-                self.logger.info("Continue flashing...")
-        if not args.skip_bootstrap and not args.dry_run:
-            run_bootrom(args)
+    def detect_image(self, args):
+        # Detect the appropriate image based on the provided path.
+        for name, img in images.items():
+            if img.detect(args.path):
+                image = img(args)
+                image.setup_local_parser()
+                return image
+        return None
 
-        flasher.flash(args.targets)
+    def run_daemon(self, image, args):
+        # Starts the daemon process and worker threads.
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        # Launch daemon mode
+        daemon = GenioFlashDaemon(args, image)
+        # Cleanup legacy aiot tools
+        daemon.cleanup_aiot_tools()
+
+        worker_thread = threading.Thread(target=daemon.start_workers)
+        worker_thread.start()
+        daemon.run()
+        worker_thread.join()
+
+    def run_worker(self, image, args):
+        # Run the flashing process in worker mode.
+        # Note: We need to initialize the Flash class before calling `worker_thread` to avoid creating two instances in a single process.
+        from aiot.flash import Flash
+        flasher = Flash(image=image, dry_run=args.dry_run, daemon=False, verbose=args.verbose)
+        flasher.flash_worker(image=image, args=args)
 
 def main():
+    # Main entry point for the 'genio-flash'.
     tool = FlashTool()
     tool.execute()
