@@ -24,12 +24,12 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'aiot-config=aiot.config:main',
-            'aiot-flash=aiot.flash:main',
+            'aiot-flash=aiot.flashtool:main',
             'aiot-board=aiot.board:main',
             'aiot-efuse=aiot.efuse:main',
             'aiot-rpmb-write-key=aiot.rpmb:main',
             'genio-config=aiot.config:main',
-            'genio-flash=aiot.flash:main',
+            'genio-flash=aiot.flashtool:main',
             'genio-board=aiot.board:main',
             'genio-efuse=aiot.efuse:main',
             'genio-rpmb-write-key=aiot.rpmb:main',
