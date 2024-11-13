@@ -47,6 +47,9 @@ class UBootEnv:
         return updated
 
     def write_env(self, out, redund_id=-1):
+            if self.env_size <= 0:
+                raise ValueError("Invalid U-Boot env size")
+
             pos = out.tell()
 
             out.seek(pos + 4)

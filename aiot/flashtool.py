@@ -40,9 +40,9 @@ class FlashTool(aiot.App):
         # Add U-Boot related arguments to the parser.
         group = parser.add_argument_group('U-Boot')
         group.add_argument('--uboot-env-size',
-            default = 4096,
+            default = 0,
             type = lambda num: int(num, 0),
-            help = 'Size of the U-Boot environment storage. Default to 4096 bytes.')
+            help = 'Size of the U-Boot environment storage in bytes. By default auto-detect from fw_env.config. Fallback to 4096 bytes if fails.')
         group.add_argument('--uboot-env-redund-offset',
             default = -1,
             type = lambda num: int(num, 0),

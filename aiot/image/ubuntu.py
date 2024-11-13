@@ -23,7 +23,8 @@ class UbuntuImage:
         self.ubuntu_edition = None
         self.ubuntu_version = None
         self.ubuntu_codename = None
-        self.uboot_env_size = self.args.uboot_env_size
+        arg_env_size = self.args.uboot_env_size
+        self.uboot_env_size = arg_env_size if arg_env_size else 4096
         offset_arg = self.args.uboot_env_redund_offset
         self.uboot_env_redund_offset = 0x100000 if offset_arg == -1 else offset_arg
         self.uboot_env_redund_support = True
