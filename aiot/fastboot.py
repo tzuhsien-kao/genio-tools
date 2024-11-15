@@ -4,6 +4,7 @@
 # Author: Macpaul Lin <macpaul.lin@mediatek.com>
 
 import subprocess
+import time
 from fastboot_log_parser import FlashLogParser
 
 class Fastboot:
@@ -31,6 +32,8 @@ class Fastboot:
         if self.dry_run:
             return []
 
+        # Wait while the OS enumerates new fastboot devices; this takes about 2 seconds.
+        time.sleep(2)
         process = subprocess.Popen([self.bin, "devices"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
         stdout, _ = process.communicate()
         devices = stdout.strip().split('\n')

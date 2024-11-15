@@ -64,7 +64,7 @@ class Flash:
         actions = self.img.groups.get(group, {})
         if self.daemon:
             while not self.fastboot.devices():
-                time.sleep(3)
+                time.sleep(1)
 
             # Assign fastboot serial number
             self.fastboot_sn = self.daemon.assign_sn_flasher(self.fastboot.devices())
