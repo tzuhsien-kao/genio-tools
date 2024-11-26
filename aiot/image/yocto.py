@@ -241,7 +241,8 @@ class YoctoImage:
             for dtbo in self.kernel_dtbo_autoload:
                 boot_conf += f"#conf-{dtbo}"
                 list_dtbo += f"{dtbo} "
-            env.update('boot_conf', boot_conf)
+            if not env.update('boot_conf', boot_conf):
+                env.add('boot_conf', boot_conf)
             env.update('list_dtbo', list_dtbo)
         self.logger.debug(f"redund_offset={self.args.uboot_env_redund_offset}")
         env.write_binary(f"{self.path}/u-boot-env.bin", self.args.uboot_env_redund_offset)
