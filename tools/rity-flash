@@ -32,6 +32,8 @@ class FlashTool(rity.App):
         self.parser.add_argument('-P', '--path', type=str, help='Path to image',
             default=".")
         self.parser.add_argument('--dry-run', action="store_true")
+        self.parser.add_argument('--skip-erase', action="store_true",
+            help='Skip erasing partitions before flash')
 
         group = self.parser.add_argument_group('Bootstrap')
         group.add_argument('--skip-bootstrap', action="store_true",
@@ -92,7 +94,7 @@ class FlashTool(rity.App):
             ]
             subprocess.run(bootrom_app, check=True)
 
-        flasher = rity.Flash(image, dry_run=args.dry_run)
+        flasher = rity.Flash(image, dry_run=args.dry_run, skip_erase=args.skip_erase)
         flasher.flash(args.targets)
 
 if __name__ == "__main__":

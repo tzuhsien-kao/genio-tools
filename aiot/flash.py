@@ -16,7 +16,7 @@ from aiot.bootrom import run_bootrom
 from aiot.bootrom_log_parser import bootrom_log_parser
 
 class Flash:
-    def __init__(self, image, dry_run=False, daemon=False, verbose=False, queue=None, data_event=None):
+    def __init__(self, image, dry_run=False, daemon=False, verbose=False, queue=None, data_event=None, skip_erase=False):
         # Initialize the Flash object with necessary parameters.
         self.img = image
         self.daemon = daemon
@@ -24,6 +24,7 @@ class Flash:
         self.queue = queue
         self.fastboot_sn = None
         self.data_event = data_event
+        self.skip_erase = skip_erase
         self.fastboot = aiot.Fastboot(dry_run=dry_run, daemon=daemon)
         self.logger = logging.getLogger('aiot')
 
@@ -80,7 +81,7 @@ class Flash:
                 if partition not in self.img.partitions:
                     self.logger.error(f"Invalid partition {partition}")
                     return
-                if action == 'erase':
+                if action == 'erase' and not self.skip_erase:
                     self.erase_partition(partition)
                 elif action == 'flash':
                     self.flash_partition(partition, self.img.partitions[partition])

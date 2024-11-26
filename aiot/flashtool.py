@@ -71,6 +71,8 @@ class FlashTool(aiot.App):
         # Setup command line argument parser.
         self.parser.add_argument('targets', type=str, nargs='*', help='Name of the partition or group of partition to flash')
         self.parser.add_argument('--dry-run', action="store_true")
+        self.parser.add_argument('--skip-erase', action="store_true",
+            help='Skip erasing partitions before flash')
         self.parser.add_argument('--daemon', action="store_true", help="Run as a daemon")
         self.parser.add_argument('--workers', type=int, default=2, help='Number of workers in daemon mode')
         self.parser.add_argument('--host', type=str, default='localhost', help='Daemon host address')
@@ -138,7 +140,7 @@ class FlashTool(aiot.App):
         # Run the flashing process in worker mode.
         # Note: We need to initialize the Flash class before calling `worker_thread` to avoid creating two instances in a single process.
         from aiot.flash import Flash
-        flasher = Flash(image=image, dry_run=args.dry_run, daemon=False, verbose=args.verbose)
+        flasher = Flash(image=image, dry_run=args.dry_run, daemon=False, verbose=args.verbose, skip_erase=args.skip_erase)
         flasher.flash_worker(image=image, args=args)
 
 def main():
