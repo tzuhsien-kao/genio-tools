@@ -84,11 +84,10 @@ class Fastboot:
         command += ["erase", partition]
         return self._run_command(command)
 
-    def reboot(self):
+    def reboot(self, fastboot_sn=None):
         if self.dry_run:
             return
 
-    def reboot(self, fastboot_sn=None):
         # Reboot the device.
         command = [self.bin]
         if fastboot_sn:
