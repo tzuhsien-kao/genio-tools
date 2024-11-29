@@ -140,7 +140,7 @@ class GenioFlashDaemon:
         current_time = time.time()
         if current_time - self.last_start_time >= 5:
             for worker in self.workers:
-                if worker.action in ["Stopped"]:
+                if worker.action == "Stopped" and not worker.is_alive():
                     worker.start()
                     self.last_start_time = current_time
                     return True
