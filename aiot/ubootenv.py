@@ -8,12 +8,17 @@ import zlib
 import struct
 
 class UBootEnv:
-    def __init__(self, env_size, env_file):
+    def __init__(self, env_size, env_file, args):
         self.logger = logging.getLogger('aiot')
         self.env = [];
         self.env_size = env_size
+        self.args = args
         with open(env_file, "r") as env:
             self.env = env.readlines()
+        if self.args.dtbo_index:
+            self.add("dtbo_index", self.args.dtbo_index)
+        if self.args.serialno:
+            self.add("serial#", self.args.serialno)
 
     def add(self, name, value):
         self.env.append("{}={}".format(name, value))

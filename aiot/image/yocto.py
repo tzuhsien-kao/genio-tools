@@ -230,9 +230,6 @@ class YoctoImage:
         env = aiot.UBootEnv(env_size,
                             f"{self.path}/u-boot-initial-env")
 
-        if self.args.serialno:
-            env.add("serial#", self.args.serialno)
-
         env.update_env_list(self.args.uboot_env_set)
 
         if len(self.kernel_dtbo_autoload) > 0:

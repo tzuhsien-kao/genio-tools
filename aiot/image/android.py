@@ -44,12 +44,9 @@ class AndroidImage:
         self.generate_uboot_env()
 
     def generate_uboot_env(self):
-        env = aiot.UBootEnv(8192, f"{self.path}/u-boot-initial-env")
-        if self.args.dtbo_index:
-            env.update("dtbo_index", self.args.dtbo_index)
-        if self.args.serialno:
-            env.update("serial#", self.args.serialno)
-
+        env = aiot.UBootEnv(8192,
+                            f"{self.path}/u-boot-initial-env",
+                            self.args)
         env.write_binary(f"{self.path}/u-boot-env.bin")
 
     @classmethod
