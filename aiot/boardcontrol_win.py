@@ -36,7 +36,7 @@ class BoardControl:
             mask |= 0x1 << (4 + b) 
         return mask
 
-    def _set_gpio(self, rst, dl):
+    def _set_gpio(self, rst, dl, pwr = 0):
         '''
         Excerpt from AN232R-01_FT232RBitBangModes.pdf
         section 1.4 CBUS Bit Bang Mode:
@@ -45,7 +45,10 @@ class BoardControl:
         The upper nibble of the Mask parameter controls which pins are inputs or
         outputs, while the lower nibble controls which of the outputs are high or low.
         '''
-        mask = self.mask_high() | (rst << self.rst_gpio) | (dl << self.dl_gpio)
+        mask = (self.mask_high() |
+                (rst << self.rst_gpio) |
+                (dl << self.dl_gpio) |
+                (pwr << self.pwr_gpio))
         # 0x20 is FT_BITMODE_CBUS_BITBANG,
         # please note that the desired pin state are stored in "mask"
         self.dev.setBitMode(mask, 0x20)
@@ -76,7 +79,9 @@ class BoardControl:
         self.dev.close()
 
     def power(self):
-        raise RuntimeError("power is not supported now")
+        self._set_gpio(rst = 0, dl = 0, pwr = 1)
+        time.sleep(1)
+        self._set_gpio(rst = 0, dl = 0, pwr = 0)
 
 
 if __name__ == "__main__":
