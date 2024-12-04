@@ -47,19 +47,15 @@ class FlashTool(aiot.App):
             default = -1,
             type = lambda num: int(num, 0),
             help = 'Enable U-Boot redundant env generation and assign offset of the redundant data. No redundant env by default.')
+        group.add_argument('--serialno', type=str, \
+            help='Customize "serial#" U-Boot environment variable. '
+                'This sets serial number in adb, fastboot, and dmidecode. '
+                'Note that this different from the serial used in `genio-board -s` and `genio-flash -s`.')
         group.add_argument('-e', '--uboot-env-set',
             action="append",
             metavar="KEY=VALUE",
             help='Update or add U-Boot env variables as a KEY=VALUE pair. e.g. `-e boot_targets=ebbr -e ethaddr=00:11:22:33:44:55.'
                  'Use double quote for VALUE if there are space characters, e.g. `-e boot_prefixes="/ /boot /oemboot"`.')
-
-    def add_firmware_group(self, parser):
-        # Add firmware related arguments to the parser.
-        group = parser.add_argument_group('Firmware')
-        group.add_argument('--serialno', type=str, \
-            help="Customize serial number used in adb and fastboot, e.g. the result of 'adb devices'\n"
-                 "This is not the serial used by 'aiot-board -s' and 'aiot-flash -s',"
-                 "which is FTDI serial connected to UART0.")
 
     def add_gpio_arguments(self, group):
         # Add GPIO related arguments to the specified group.
@@ -80,7 +76,6 @@ class FlashTool(aiot.App):
 
         # Bootstrap
         add_bootstrap_group(self.parser)
-        self.add_firmware_group(self.parser)
         self.add_uboot_group(self.parser)
 
         if platform.system() == 'Linux':
