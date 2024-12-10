@@ -23,6 +23,7 @@ images = {
     'Yocto': aiot.image.YoctoImage,
     'Android': aiot.image.AndroidImage,
     'Ubuntu': aiot.image.UbuntuImage,
+    'BootFirmware': aiot.image.BootFirmwareImage,
 }
 
 app_description = """
