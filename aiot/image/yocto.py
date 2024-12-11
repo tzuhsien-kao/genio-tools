@@ -228,7 +228,8 @@ class YoctoImage:
         else:
             env_size = self.detect_uboot_env_size()
         env = aiot.UBootEnv(env_size,
-                            f"{self.path}/u-boot-initial-env")
+                            f"{self.path}/u-boot-initial-env",
+                            self.args)
 
         env.update_env_list(self.args.uboot_env_set)
 
