@@ -36,7 +36,7 @@ class BootFirmwareImage:
         self.check_boot_assets()
 
     def generate_file(self, partition, filename):
-        if partition == 'mmc0boot1':
+        if partition in ('mmc0boot1', 'nor_env'):
             self.generate_uboot_env()
 
     def check_boot_assets(self):
