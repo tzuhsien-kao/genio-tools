@@ -58,16 +58,13 @@ class Fastboot:
                 if output == '' and process.poll() is not None:
                     break
                 if output:
-                    stdout += output.strip() + "\n"
+                    stdout = output.strip() + "\n"
                     self.parser.parse_log(stdout)
                     json_output = self.parser.get_event_as_json()
+                    # In daemon mode, a callback function should be provided to handle output processing.
                     if callback:
                         callback(json_output)
 
-            remaining_output = process.communicate()[0].strip()
-            stdout += remaining_output
-            self.parser.parse_log(stdout)
-            return self.parser.get_event_as_json()
         else:
             subprocess.run(command, check=True)
 

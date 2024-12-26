@@ -5,7 +5,7 @@
 import json
 import logging
 import threading
-from multiprocessing import Queue, Event
+from queue import SimpleQueue
 
 import aiot
 from aiot.bootrom_log_parser import parse_log_line, bootrom_log_parser
@@ -19,8 +19,8 @@ class GenioFlashWorker(threading.Thread):
         self.com_port = None
         self.progress = None
         self.image = image
-        self.queue = Queue()
-        self.data_event = Event()  # use threading.Event
+        self.queue = SimpleQueue()
+        self.data_event = threading.Event()  # use threading.Event
         self.logger = logging.getLogger('aiot')
         self.flasher = None
         self.daemon = daemon
@@ -44,9 +44,10 @@ class GenioFlashWorker(threading.Thread):
         try:
             while True:
                 self.data_event.wait()
-                self.data_event.clear()
+
                 while not self.queue.empty():
-                    data = json.loads(self.queue.get())
+                    json_input = self.queue.get(timeout=2)
+                    data = json.loads(json_input)
 
                     # Update fastboot_sn if it's a valid string
                     if isinstance(self.flasher.fastboot_sn, str) and self.flasher.fastboot_sn:
@@ -60,6 +61,8 @@ class GenioFlashWorker(threading.Thread):
                     # Log based on action and error
                     log_message = self.format_log_message(data)
                     self.log_based_on_action(log_message, data)
+
+                self.data_event.clear()
 
         except json.JSONDecodeError:
             self.handle_json_decode_error()

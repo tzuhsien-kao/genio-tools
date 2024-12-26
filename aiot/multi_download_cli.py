@@ -90,6 +90,7 @@ def cleanup(daemon_process):
 
 def gui_main(stdscr, args):
     # Main loop for the GUI mode.
+    global exit_program
     curses.curs_set(0)  # Hide cursor
     stdscr.nodelay(True)  # Non-blocking mode
     sock = None
@@ -119,7 +120,7 @@ def gui_main(stdscr, args):
             stdscr.refresh()
             time.sleep(1)
     except KeyboardInterrupt:
-        pass  # Ctrl-C to quit
+        exit_program = True  # Ctrl-C to quit
     finally:
         if sock:
             sock.close()
@@ -139,6 +140,7 @@ def key_listener():
 
 def main():
     # Main entry point of the script.
+    global exit_program
     parser = argparse.ArgumentParser(description='Client to query daemon status.')
     parser.add_argument('--host', type=str, default='localhost', help='Daemon host address')
     parser.add_argument('--port', type=int, required=True, help='Daemon port number')
@@ -188,7 +190,7 @@ def main():
 
                 time.sleep(1)
         except KeyboardInterrupt:
-            pass  # Ctrl-C to quit
+            exit_program = True  # Ctrl-C to quit
         finally:
             if sock:
                 sock.close()
