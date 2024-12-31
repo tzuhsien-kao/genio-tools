@@ -40,7 +40,8 @@ def get_daemon_status(sock):
 
 def status_json_to_info(status_info_json_str):
     # Convert status JSON string to a human-readable status info string.
-    status_info_json = json.loads(status_info_json_str)
+    status_info_json = status_info_json_str
+    id = status_info_json.get("id")
     status_info = status_info_json.get("action", "Unknown")
 
     if "error" in status_info_json and status_info_json['error']:
@@ -61,15 +62,19 @@ def status_json_to_info(status_info_json_str):
 def update_status_display(json_data):
     # Print the status information to the console.
     print(MENU_STR)
-    for id, status_info_json_str in json_data:
-        print(f"Worker {id} status: {status_json_to_info(status_info_json_str)}")
+    for status_info_json_str in json_data:
+        id = status_info_json_str.get("id")
+        status_info = status_json_to_info(status_info_json_str)
+        print(f"Worker {id} status: {status_info}")
 
 def update_status_display_gui(stdscr, json_data):
     # Update the status display in the GUI.
     stdscr.clear()
     stdscr.addstr(0, 0, MENU_STR)
-    for row, (id, status_info_json_str) in enumerate(json_data, start=1):
-        stdscr.addstr(row, 0, f"Worker {id} status: {status_json_to_info(status_info_json_str)}")
+    for row, (status_info_json_str) in enumerate(json_data, start=1):
+        id = status_info_json_str.get("id")
+        status_info = status_json_to_info(status_info_json_str)
+        stdscr.addstr(row, 0, f"Worker {id} status: {status_info}")
     stdscr.refresh()
 
 def cleanup(daemon_process):
