@@ -5,6 +5,7 @@
 import json
 import logging
 import threading
+import time
 from queue import SimpleQueue
 
 import aiot
@@ -21,6 +22,7 @@ class GenioFlashWorker(threading.Thread):
         self.image = image
         self.queue = SimpleQueue()
         self.data_event = threading.Event()  # use threading.Event
+        self.update_event = threading.Event()  # use threading.Event
         self.logger = logging.getLogger('aiot')
         self.flasher = None
         self.daemon = daemon
@@ -62,12 +64,45 @@ class GenioFlashWorker(threading.Thread):
                     log_message = self.format_log_message(data)
                     self.log_based_on_action(log_message, data)
 
+                    # Notify flash daemon to update status
+                    self.update_event.set()
+
                 self.data_event.clear()
 
         except json.JSONDecodeError:
             self.handle_json_decode_error()
         except Exception as e:
             self.handle_general_error(e)
+
+    def get_status_json(self):
+        # Generate a JSON representation of the current status of the worker.
+        status_info = {
+            "id": self.id,
+            "action": self.action,
+            "error": "",
+            "com_port": self.com_port if self.action not in ["Starting"] else None,
+            "fastboot_sn": self.shared_properties["fastboot_sn"] if self.action not in ["Starting"] else None,
+            "progress": self.progress if self.action not in ["Starting"] else None,
+            "duration": None
+        }
+
+        if self.action == "Jumping DA":
+            self.shared_properties["start_time"] = time.time()
+
+        if self.action == "Starting" and self.error:
+            status_info["error"] = self.error
+            self.error = ""
+
+        if self.action not in ["Starting", "rebooting", "done"] and self.shared_properties["start_time"] is not None:
+            self.shared_properties["total_duration"] = round(time.time() - self.shared_properties["start_time"], 2)
+            status_info["duration"] = f"{self.shared_properties['total_duration']}s"
+        elif self.action == "rebooting":
+            status_info["duration"] = f"{self.shared_properties['total_duration']}s"
+            if self.shared_properties["fastboot_sn"] in self.daemon.assigned_sn:
+                self.daemon.assigned_sn.discard(self.shared_properties["fastboot_sn"])
+
+        # Remove keys with None values
+        return json.dumps({k: v for k, v in status_info.items() if v is not None}, indent=4)
 
     def format_log_message(self, data):
         # Format the log message for the worker based on its attributes and data.
