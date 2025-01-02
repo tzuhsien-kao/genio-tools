@@ -9,6 +9,7 @@ import psutil
 import time
 import threading
 import socket
+from queue import SimpleQueue
 
 from .flash_worker import GenioFlashWorker
 
@@ -23,6 +24,7 @@ class GenioFlashDaemon:
         self.statuses = [{"id": i, "action": "Stopped", "error": ""} for i in range(self.max_processes)]
         self.last_start_time = time.time() - 5
         self.workers = [GenioFlashWorker(i, image=image, args=args, daemon=self) for i in range(self.max_processes)]
+        self.queue = SimpleQueue()
         self.action_update_thread = threading.Thread(target=self.update_status_all)
         self.action_update_thread.start()
         self.assigned_sn = set()
@@ -62,13 +64,11 @@ class GenioFlashDaemon:
     def update_status_all(self):
         # Continuously update the status of all workers and store the information in a JSON format.
         while True:
-            for worker in self.workers:
-                if worker.update_event.is_set():
-                    status_info_json_str = worker.get_status_json()
-                    # Assign updated status information to the corresponding worker
-                    self.statuses[worker.id] = json.loads(status_info_json_str)
-
-                worker.update_event.clear()  # Clear the event after processing
+            # Assign the updated status information to the corresponding worker.
+            while not self.queue.empty():
+                status_info_json_str = self.queue.get(block=True, timeout=None)
+                status_info_json = json.loads(status_info_json_str)
+                self.statuses[status_info_json['id']] = status_info_json
 
             time.sleep(1)
 

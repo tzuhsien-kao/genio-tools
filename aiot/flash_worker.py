@@ -22,7 +22,6 @@ class GenioFlashWorker(threading.Thread):
         self.image = image
         self.queue = SimpleQueue()
         self.data_event = threading.Event()  # use threading.Event
-        self.update_event = threading.Event()  # use threading.Event
         self.logger = logging.getLogger('aiot')
         self.flasher = None
         self.daemon = daemon
@@ -65,7 +64,8 @@ class GenioFlashWorker(threading.Thread):
                     self.log_based_on_action(log_message, data)
 
                     # Notify flash daemon to update status
-                    self.update_event.set()
+                    status_info_json_str = self.get_status_json()
+                    self.daemon.queue.put(status_info_json_str)
 
                 self.data_event.clear()
 
