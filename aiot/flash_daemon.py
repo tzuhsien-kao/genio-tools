@@ -48,27 +48,6 @@ class GenioFlashDaemon:
 
         return status_info
 
-    def assign_sn(self, worker):
-        # Assign a serial number (SN) to the specified worker if it is not already assigned.
-        if isinstance(worker.shared_properties["fastboot_sn"], list):
-            new_fastboot_sn = [sn for sn in worker.shared_properties["fastboot_sn"] if sn not in self.assigned_sn]
-
-            if len(new_fastboot_sn) > 1:
-                print("Error: More than one new fastboot device connected. Please connect only one at a time.")
-                print(f"Error: New fastboot devices: {new_fastboot_sn}")
-                return
-
-            self.assigned_sn.update(new_fastboot_sn)
-
-            for sn in new_fastboot_sn:
-                worker.flasher.fastboot_sn = sn
-                worker.shared_properties["fastboot_sn"] = sn  # Update the dictionary
-
-            if isinstance(worker.flasher.fastboot_sn, str) and worker.flasher.fastboot_sn is not None:
-                print("Error: worker.flasher.fastboot_sn should be a string.")
-                print(f"Error: worker.fastboot_sn: {worker.shared_properties['fastboot_sn']}")
-                print(f"Error: worker.flasher.fastboot_sn: {worker.flasher.fastboot_sn}")
-
     def assign_sn_flasher(self, fastboot_sn):
         # Assign a serial number (SN) to the flasher based on the provided list of fastboot SNs.
         if isinstance(fastboot_sn, list):
