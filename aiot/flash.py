@@ -64,11 +64,25 @@ class Flash:
         # Flash a group of partitions defined in the image.
         actions = self.img.groups.get(group, {})
         if self.daemon:
+            timeout = 10
+            start_time = time.time()
+
             while not self.fastboot.devices():
+                if time.time() - start_time > timeout:
+                    data = {'action': 'Error: Jump DA failed', 'error': 'Jump DA: Exceeded 10 seconds.'}
+                    json_output = json.dumps(data, indent=4)
+                    if self.queue:
+                        self.queue.put(json_output)
+                        if self.data_event:
+                            self.data_event.set()  # Notify the flash daemon
+                    break
                 time.sleep(1)
 
             # Assign fastboot serial number
             self.fastboot_sn = self.daemon.assign_sn_flasher(self.fastboot.devices())
+            if not self.fastboot_sn: # Abort flash if jump DA failed (Cannot find new fastboot device)
+                return
+
             data = {"fastboot_sn": self.fastboot_sn}
             json_output = json.dumps(data, indent=4)
             if self.queue:
@@ -125,6 +139,9 @@ class Flash:
 
             if target in self.img.groups:
                 self.flash_group(target)
+                if self.daemon:
+                    if not self.fastboot_sn: # Abort flash if jump DA failed
+                        return
                 continue
 
             if partition in self.img.partitions:
