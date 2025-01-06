@@ -67,8 +67,8 @@ def update_status_display(json_data):
         status_info = status_json_to_info(status_info_json_str)
         print(f"Worker {id} status: {status_info}")
 
-def update_status_display_gui(stdscr, json_data):
-    # Update the status display in the GUI.
+def update_status_display_tui(stdscr, json_data):
+    # Update the status display in the text-base user interface.
     stdscr.clear()
     stdscr.addstr(0, 0, MENU_STR)
     for row, (status_info_json_str) in enumerate(json_data, start=1):
@@ -93,8 +93,8 @@ def cleanup(daemon_process):
             daemon_process.terminate()
             daemon_process.wait()
 
-def gui_main(stdscr, args):
-    # Main loop for the GUI mode.
+def tui_main(stdscr, args):
+    # Main loop for the text-base user interface mode.
     global exit_program
     curses.curs_set(0)  # Hide cursor
     stdscr.nodelay(True)  # Non-blocking mode
@@ -120,7 +120,7 @@ def gui_main(stdscr, args):
             except json.JSONDecodeError:
                 continue  # Skip this iteration if JSON is invalid
 
-            update_status_display_gui(stdscr, json_data)
+            update_status_display_tui(stdscr, json_data)
 
             stdscr.refresh()
             time.sleep(1)
@@ -149,7 +149,7 @@ def main():
     parser = argparse.ArgumentParser(description='Client to query daemon status.')
     parser.add_argument('--host', type=str, default='localhost', help='Daemon host address')
     parser.add_argument('--port', type=int, required=True, help='Daemon port number')
-    parser.add_argument('--gui', action='store_true', help='Enable GUI mode')
+    parser.add_argument('--tui', action='store_true', help='Enable text-base user interface mode')
     parser.add_argument('--run-daemon', action='store_true', help='Run genio-flash daemon locally')
     parser.add_argument('--worker', type=int, help='Number of workers for the daemon')
     args = parser.parse_args()
@@ -167,8 +167,8 @@ def main():
     listener_thread = threading.Thread(target=key_listener)
     listener_thread.start()
 
-    if args.gui:
-        curses.wrapper(gui_main, args)
+    if args.tui:
+        curses.wrapper(tui_main, args)
     else:
         sock = None
         try:
