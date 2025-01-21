@@ -3,3 +3,25 @@ requires = ["setuptools >= 61.0", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
+
+[project]
+name = "genio-tools"
+dynamic = ["version", "scripts", "dependencies"]
+description = "Tools for flashing boards using MediaTek Genio SoCs"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.9"
+authors = [
+    { name = "Fabien Parent" },
+]
+maintainers = [
+    { name = "Pablo Sun", email = "pablo.sun@mediatek.com" },
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://mediatek.gitlab.io/aiot/doc/aiot-dev-guide/master/tools/genio-tools.html"
