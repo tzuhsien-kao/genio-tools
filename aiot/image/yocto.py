@@ -52,6 +52,9 @@ class YoctoImage:
                 if dtbo not in self.kernel_dtbo_autoload:
                     self.kernel_dtbo_autoload.append(dtbo)
 
+        # remove all --unload_dtbo items
+        self.kernel_dtbo_autoload = list(filter(lambda x: x not in self.args.unload_dtbo, self.kernel_dtbo_autoload))
+
         if args.interactive:
             self.run_interactive_mode()
 
@@ -176,8 +179,8 @@ class YoctoImage:
             self.kernel_dtbs = data['KERNEL_DEVICETREE'].split(' ')
             self.distro_features = data['DISTRO_FEATURES']
 
-        if self.args.load_dtbo and 'secure-boot' in self.distro_features:
-            self.logger.warn("Can't use --load-dtbo with secure boot enabled")
+        if (self.args.load_dtbo or self.args.unload_dtbo) and 'secure-boot' in self.distro_features:
+            self.logger.warn("Can't use --load-dtbo/--unload-dtbo with secure boot enabled")
 
         self.load_dtbos()
         self.load_initial_dtbo()
@@ -343,8 +346,10 @@ class YoctoImage:
             help='Interactively select what will be flashed')
         parser.add_argument('--load-dtbo', action="append", type=str,
             help='Name of the dtbo to load')
+        parser.add_argument('--unload-dtbo', action="append", type=str,
+            help='Name of the dtbo to remove from auto-load list')
         parser.add_argument('--list-dtbo', action="store_true",
-            help='Show the list of available DTBO')
+            help='Show the list of available DTBO. Auto-load items have asterisk(*).')
 
     @classmethod
     def define_local_parser(cls, parser):
