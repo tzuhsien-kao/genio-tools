@@ -61,16 +61,23 @@ class YoctoImage:
 
     def run_interactive_mode(self):
         for dtbo in self.kernel_dtbo:
-            if dtbo in self.kernel_dtbo_autoload:
-                continue
-
             while True:
                 try:
-                    choice = input(f"Load overlay '{dtbo} [N/y]:").lower()
+                    is_auto_load = dtbo in self.kernel_dtbo_autoload
+                    if is_auto_load:
+                        prompt = "[Y/n]"
+                    else:
+                        prompt = "[N/y]"
+
+                    choice = input(f"Load overlay '{dtbo} {prompt}:").lower()
                     if choice == 'y':
                         self.kernel_dtbo_autoload.append(dtbo)
                         break
-                    elif choice == 'n' or choice == '':
+                    elif choice == 'n':
+                        if is_auto_load:
+                            self.kernel_dtbo_autoload.remove(dtbo)
+                        break
+                    else:
                         break
                 except KeyboardInterrupt:
                     sys.exit(0)
@@ -316,8 +323,11 @@ class YoctoImage:
 
         if self.args.list_dtbo:
             print("List of available DTBO:")
+            print("\t( * items are automatically loaded )")
+
             for dtbo in self.kernel_dtbo:
-                print(f"\t- {dtbo}")
+                status = '*' if dtbo in self.kernel_dtbo_autoload else ' '
+                print(f"\t{status} {dtbo}")
             sys.exit(0)
 
     @classmethod
