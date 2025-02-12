@@ -52,6 +52,9 @@ class YoctoImage:
                 if dtbo not in self.kernel_dtbo_autoload:
                     self.kernel_dtbo_autoload.append(dtbo)
 
+        # remove all --unload_dtbo items
+        self.kernel_dtbo_autoload = list(filter(lambda x: x not in self.args.unload_dtbo, self.kernel_dtbo_autoload))
+
         if args.interactive:
             self.run_interactive_mode()
 
@@ -61,16 +64,23 @@ class YoctoImage:
 
     def run_interactive_mode(self):
         for dtbo in self.kernel_dtbo:
-            if dtbo in self.kernel_dtbo_autoload:
-                continue
-
             while True:
                 try:
-                    choice = input(f"Load overlay '{dtbo} [N/y]:").lower()
+                    is_auto_load = dtbo in self.kernel_dtbo_autoload
+                    if is_auto_load:
+                        prompt = "[Y/n]"
+                    else:
+                        prompt = "[N/y]"
+
+                    choice = input(f"Load overlay '{dtbo} {prompt}:").lower()
                     if choice == 'y':
                         self.kernel_dtbo_autoload.append(dtbo)
                         break
-                    elif choice == 'n' or choice == '':
+                    elif choice == 'n':
+                        if is_auto_load:
+                            self.kernel_dtbo_autoload.remove(dtbo)
+                        break
+                    else:
                         break
                 except KeyboardInterrupt:
                     sys.exit(0)
@@ -169,8 +179,8 @@ class YoctoImage:
             self.kernel_dtbs = data['KERNEL_DEVICETREE'].split(' ')
             self.distro_features = data['DISTRO_FEATURES']
 
-        if self.args.load_dtbo and 'secure-boot' in self.distro_features:
-            self.logger.warn("Can't use --load-dtbo with secure boot enabled")
+        if (self.args.load_dtbo or self.args.unload_dtbo) and 'secure-boot' in self.distro_features:
+            self.logger.warn("Can't use --load-dtbo/--unload-dtbo with secure boot enabled")
 
         self.load_dtbos()
         self.load_initial_dtbo()
@@ -316,8 +326,11 @@ class YoctoImage:
 
         if self.args.list_dtbo:
             print("List of available DTBO:")
+            print("\t( * items are automatically loaded )")
+
             for dtbo in self.kernel_dtbo:
-                print(f"\t- {dtbo}")
+                status = '*' if dtbo in self.kernel_dtbo_autoload else ' '
+                print(f"\t{status} {dtbo}")
             sys.exit(0)
 
     @classmethod
@@ -333,8 +346,10 @@ class YoctoImage:
             help='Interactively select what will be flashed')
         parser.add_argument('--load-dtbo', action="append", type=str,
             help='Name of the dtbo to load')
+        parser.add_argument('--unload-dtbo', action="append", type=str,
+            help='Name of the dtbo to remove from auto-load list')
         parser.add_argument('--list-dtbo', action="store_true",
-            help='Show the list of available DTBO')
+            help='Show the list of available DTBO. Auto-load items have asterisk(*).')
 
     @classmethod
     def define_local_parser(cls, parser):
