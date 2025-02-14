@@ -53,7 +53,8 @@ class YoctoImage:
                     self.kernel_dtbo_autoload.append(dtbo)
 
         # remove all --unload_dtbo items
-        self.kernel_dtbo_autoload = list(filter(lambda x: x not in self.args.unload_dtbo, self.kernel_dtbo_autoload))
+        if self.args.unload_dtbo:
+            self.kernel_dtbo_autoload = list(filter(lambda x: x not in self.args.unload_dtbo, self.kernel_dtbo_autoload))
 
         if args.interactive:
             self.run_interactive_mode()
