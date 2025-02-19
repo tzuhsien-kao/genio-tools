@@ -14,17 +14,21 @@ from aiot.bootrom import add_bootstrap_group
 from aiot.bootrom import run_bootrom
 from aiot.flash_daemon import GenioFlashDaemon
 from aiot.flash_worker import bootrom_log_parser
+from collections import OrderedDict
+
 
 if platform.system() == 'Linux':
     import pyudev
 
 # Supported image types
-images = {
-    'Yocto': aiot.image.YoctoImage,
-    'Android': aiot.image.AndroidImage,
-    'Ubuntu': aiot.image.UbuntuImage,
-    'BootFirmware': aiot.image.BootFirmwareImage,
-}
+# Raw images should match last, so use an ordered dict
+images = OrderedDict([
+    ('Yocto', aiot.image.YoctoImage),
+    ('Android', aiot.image.AndroidImage),
+    ('Ubuntu', aiot.image.UbuntuImage),
+    ('BootFirmware', aiot.image.BootFirmwareImage),
+    ('Raw', aiot.image.RawImage), 
+])
 
 app_description = """
     Genio flashing tool
