@@ -168,7 +168,15 @@ class YoctoImage:
         self.name = name
         self.machine = machine
 
-        with open(f"{path}/{name}-{machine}.testdata.json", 'r') as fp:
+        # Check for the file with and without '.rootfs' in the filename
+        image_suffix = ".rootfs"
+        rootfs_filename = f"{path}/{name}-{machine}{image_suffix}.testdata.json"
+        if not os.path.exists(rootfs_filename):
+            image_suffix = ""
+            rootfs_filename = f"{path}/{name}-{machine}{image_suffix}.testdata.json"
+        self.logger.debug(f"Found image suffix: {image_suffix}")
+
+        with open(rootfs_filename, "r") as fp:
             data = json.load(fp)
             self.description = data['DESCRIPTION']
             self.distro = data['DISTRO']
@@ -191,11 +199,11 @@ class YoctoImage:
         for partition in self.partitions:
             if not self.partitions[partition]:
                 if partition == "rootfs":
-                    self.partitions[partition] = f"{name}-{machine}.ext4"
+                    self.partitions[partition] = f"{name}-{machine}{image_suffix}.ext4"
                 elif partition == "mmc0":
-                    self.partitions[partition] = f"{name}-{machine}.wic.img"
+                    self.partitions[partition] = f"{name}-{machine}{image_suffix}.wic.img"
                 elif partition == "modules":
-                    self.partitions[partition] = f"modules-{machine}.modimg.ext4"
+                    self.partitions[partition] = f"modules-{machine}{image_suffix}.modimg.ext4"
 
     def detect_uboot_env_size(self):
         '''
