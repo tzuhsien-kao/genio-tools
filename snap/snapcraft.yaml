@@ -53,8 +53,6 @@ plugs:
     interface: network-observe
   adb-support:
     interface: adb-support
-  gpio-control:
-    interface: gpio-control
 
 apps:
   genio-flash:
