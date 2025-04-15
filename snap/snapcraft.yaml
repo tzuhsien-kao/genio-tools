@@ -63,6 +63,7 @@ apps:
   genio-flash:
     command: bin/genio-flash
     plugs:
+      - adb-support
       - raw-usb
   genio-config:
     command: bin/genio-config
@@ -73,7 +74,9 @@ apps:
     plugs:
       - adb-support
       - network-observe
+      - raw-usb
   genio-multi-download-cli:
     command: bin/genio-multi-download-cli
     plugs:
+      - adb-support
       - raw-usb
