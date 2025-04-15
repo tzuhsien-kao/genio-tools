@@ -53,13 +53,10 @@ plugs:
     interface: network-observe
   raw-usb:
     interface: raw-usb
-  serial-port:
-    interface: serial-port
   system-files:
     interface: system-files
     read:
       - /etc/udev/rules.d/72-aiot.rules
-
 
 apps:
   genio-flash:
@@ -67,7 +64,6 @@ apps:
     plugs:
       - adb-support
       - raw-usb
-      - serial-port
   genio-config:
     command: bin/genio-config
     plugs:
@@ -78,10 +74,8 @@ apps:
       - adb-support
       - network-observe
       - raw-usb
-      - serial-port
   genio-multi-download-cli:
     command: bin/genio-multi-download-cli
     plugs:
       - adb-support
       - raw-usb
-      - serial-port
