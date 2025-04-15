@@ -47,6 +47,8 @@ parts:
 plugs:
   adb-support:
     interface: adb-support
+  hardware-observe:
+    interface: hardware-observe
   home:
     interface: home
   network-observe:
@@ -65,6 +67,7 @@ apps:
     plugs:
       - adb-support
       - raw-usb
+      - hardware-observe
   genio-config:
     command: bin/genio-config
     plugs:
@@ -75,8 +78,10 @@ apps:
       - adb-support
       - network-observe
       - raw-usb
+      - hardware-observe
   genio-multi-download-cli:
     command: bin/genio-multi-download-cli
     plugs:
       - adb-support
       - raw-usb
+      - hardware-observe
