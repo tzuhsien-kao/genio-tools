@@ -185,7 +185,7 @@ class YoctoImage:
             if 'DISTRO_CODENAME' in data:
                 self.distro_codename = data['DISTRO_CODENAME']
             self.machine = data['MACHINE']
-            self.kernel_dtbs = data['KERNEL_DEVICETREE'].split(' ')
+            self.kernel_dtbs = data.get("KERNEL_DEVICETREE","").split(' ')
             self.distro_features = data['DISTRO_FEATURES']
 
         if (self.args.load_dtbo or self.args.unload_dtbo) and 'secure-boot' in self.distro_features:
