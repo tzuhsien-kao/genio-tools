@@ -1,0 +1,101 @@
+name: genio-tools
+version: 'unset-by-adopt-info'
+summary: Mediatek Genio Tools
+description: |
+  Flash, control or configure MediaTek boards, and in particular the Genio evaluation kits
+
+platforms:
+  amd64:
+  arm64:
+
+license: MIT
+adopt-info: genio-tools
+
+confinement: strict
+base: core24
+
+environment:
+  PATH: $SNAP/usr/bin:$SNAP/bin:$SNAP/sbin:$PATH
+  PYTHONPATH: $SNAP/lib/python3.12/site-packages:$PYTHONPATH
+  LD_LIBRARY_PATH: $SNAP/usr/lib:$SNAP/lib:$LD_LIBRARY_PATH
+
+parts:
+  genio-tools:
+    plugin: python
+    source: .
+    build-packages:
+      - python3-setuptools-scm
+      - git
+    override-pull: |
+      craftctl default
+      VERSION=$(python3 -m setuptools_scm)
+      craftctl set version="$VERSION"
+    stage-packages:
+      - fastboot
+      - android-libbase
+      - android-libboringssl
+      - android-libcutils
+      - android-liblog
+      - android-libsparse
+      - android-libziparchive
+      - libprotobuf32
+      - libpython3-stdlib
+      - libpython3.12-minimal
+      - libpython3.12-stdlib
+      - python3.12-minimal
+    build-attributes:
+      - enable-patchelf
+    
+  genio-setup:
+    plugin: dump
+    source: ./snap/scripts
+    organize:
+      install-udev-rules.sh: bin/install-udev-rules.sh
+      setup.sh: bin/setup.sh
+      udev-script.sh: bin/udev-script.sh
+
+
+plugs:
+  home:
+    interface: home
+  network-observe:
+    interface: network-observe
+  raw-usb:
+    interface: raw-usb
+  hardware-observe:
+    interface: hardware-observe
+
+apps:
+  genio-flash:
+    command: bin/genio-flash
+    plugs:
+      - home
+      - raw-usb
+      - hardware-observe
+  genio-config:
+    command: bin/genio-config
+    plugs:
+      - home
+      - hardware-observe
+  genio-board:
+    command: bin/genio-board
+    plugs:
+      - home
+      - network-observe
+      - raw-usb
+      - hardware-observe
+  genio-multi-download-cli:
+    command: bin/genio-multi-download-cli
+    plugs:
+      - home
+      - raw-usb
+      - hardware-observe
+  
+  setup:
+    command: bin/setup.sh
+    plugs:
+      - home
+  udev-script:
+    command: bin/udev-script.sh
+    plugs:
+      - home
