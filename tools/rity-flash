@@ -41,9 +41,9 @@ class FlashTool(rity.App):
         group.add_argument('--bootstrap', type=str, default='lk.bin',
             metavar='lk.bin',
             help='bootstrap binary used for flashing (default: lk.bin)')
-        group.add_argument('--bootstrap-addr', type=int, default=0x201000,
-            metavar='0x201000',
-            help='Address where the bootstrap binary will be loaded (default: 0x201000)')
+        group.add_argument('--bootstrap-addr', type=int, default=0x0,
+            metavar='0x0',
+            help='Address where the bootstrap binary will be loaded (default: 0x0)')
         group.add_argument('--bootstrap-mode', type=str, default='aarch64',
                            choices=['aarch64', 'aarch32'])
 
