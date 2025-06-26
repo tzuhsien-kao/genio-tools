@@ -32,9 +32,9 @@ def add_bootstrap_group(parser):
         help='authentication file used for flashing with DAA enabled (default: auth_sv5.auth)')
     group.add_argument('--daa', action="store_true",
         help="flash with DAA enabled")
-    group.add_argument('--bootstrap-addr', type=int, default=0x201000,
-        metavar='0x201000',
-        help='Address where the bootstrap binary will be loaded (default: 0x201000)')
+    group.add_argument('--bootstrap-addr', type=int, default=0x0,
+        metavar='0x0',
+        help='Address where the bootstrap binary will be loaded (default: 0x0)')
     group.add_argument('--bootstrap-mode', type=str, default='aarch64',
                        choices=['aarch64', 'aarch32'])
 
