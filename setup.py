@@ -36,7 +36,7 @@ setuptools.setup(
             'genio-multi-download-cli=aiot.multi_download_cli:main',
         ]},
     install_requires=[
-        'genio-bootrom>=1.1.11',
+        'genio-bootrom>=1.2.0a1',
         'windows-curses;platform_system=="Windows"',
         'keyboard',
         'gpiod==1.4.0',
