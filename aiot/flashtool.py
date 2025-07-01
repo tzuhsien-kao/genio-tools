@@ -104,7 +104,7 @@ class FlashTool(aiot.App):
         image = self.detect_image(args)
 
         if image is None:
-            logging.error("No image found")
+            self.logger.error("No image found")
             return
 
         print(image)

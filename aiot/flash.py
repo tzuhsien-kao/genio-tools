@@ -217,9 +217,9 @@ class Flash:
                 if self.data_event:
                     self.data_event.set()  # notify flash_daemon
         else:
-            logging.warning(str(error))
-            logging.warning(warning_str)
-            logging.info("Continue flashing...")
+            self.logger.warning(str(error))
+            self.logger.warning(warning_str)
+            self.logger.info("Continue flashing...")
 
     def handle_bootstrap(self, args, queue, data_event):
         # Handle the bootstrap process.
