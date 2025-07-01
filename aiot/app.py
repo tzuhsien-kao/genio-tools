@@ -9,6 +9,12 @@ import textwrap
 
 import aiot
 
+class FlushingStreamHandler(logging.StreamHandler):
+    def emit(self, record):
+        ret = super().emit(record)
+        self.flush()
+        return ret
+
 class App: # pylint: disable=too-few-public-methods
     """ Common code for Genio tools"""
 
@@ -30,9 +36,10 @@ class App: # pylint: disable=too-few-public-methods
             print(aiot.version)
             sys.exit(0)
 
-        if args.verbose:
-            logging.basicConfig(level=logging.DEBUG)
-        else:
-            logging.basicConfig(level=logging.INFO)
+        log_level = logging.DEBUG if args.verbose else logging.INFO
+        logging.basicConfig(
+                level=log_level,
+                handlers=[FlushingStreamHandler()],
+                force=True)
 
         return args
