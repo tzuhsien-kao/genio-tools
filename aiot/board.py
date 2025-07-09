@@ -61,6 +61,8 @@ def do_board_command(args):
         board.download_mode_boot()
     elif args.command == 'power':
         board.power()
+    elif args.command == 'reset-latch':
+        board.reset_latch(args.latch_state)
 
 def main():
     app = aiot.App(description=app_description)
@@ -86,11 +88,15 @@ def main():
     ftdi_parser.add_argument('--ftdi-product-name', type=str, default='undefined', help="Currently no effect.")
     ftdi_parser.add_argument('--ftdi-serial', '--set-serial', type=str, default=None, help="Update the serial number in eeprom.")
 
+    reset_latch_parser = subparsers.add_parser('reset-latch', help = "Force set the reset button state, even after program exit")
+    reset_latch_parser.add_argument('latch_state', type=int, default=1, help = "Can be 1(pressed) or 0 (released)")
+
     board_parsers = [
         ftdi_parser,
         subparsers.add_parser('reset', help = "Reset the board"),
         subparsers.add_parser('download', help = "Reset and put the board into download mode"),
         subparsers.add_parser('power', help="Power on the board"),
+        reset_latch_parser,
     ]
 
     for b in board_parsers:

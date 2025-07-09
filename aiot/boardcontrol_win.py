@@ -64,6 +64,11 @@ class BoardControl:
         self.logger.debug("reset pull low")
         self.dev.close()
 
+    def reset_latch(self, latch_state):
+        state_str = 'PRESSED' if latch_state else 'RELEASED'
+        self.logger.debug(f"reset btn {state_str}")
+        self._set_gpio(rst = latch_state, dl = 0)
+
     def download_mode_boot(self):
         '''
         reboot and set the board to DOWNLOAD mode
@@ -82,7 +87,6 @@ class BoardControl:
         self._set_gpio(rst = 0, dl = 0, pwr = 1)
         time.sleep(1)
         self._set_gpio(rst = 0, dl = 0, pwr = 0)
-
 
 if __name__ == "__main__":
     b = BoardControl(1, 2, 0)
