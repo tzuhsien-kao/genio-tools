@@ -4,3 +4,4 @@ dist
 .eggs
 *.egg-info
 aiot/version.py
+*.snap
