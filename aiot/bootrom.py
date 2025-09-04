@@ -1,5 +1,6 @@
 import platform
 import aiot_bootrom.bootrom
+from pathlib import Path
 
 if platform.system() == 'Linux':
     import pyudev
@@ -39,15 +40,19 @@ def add_bootstrap_group(parser):
                        choices=['aarch64', 'aarch32'])
 
 def run_bootrom(args):
+    image_path = Path(args.path)
     bootrom_app = [
         'aiot-bootrom',
-        '--bootstrap', args.path + '/' + args.bootstrap,
+        '--bootstrap', image_path / args.bootstrap,
         '--bootstrap-addr', hex(args.bootstrap_addr),
         '--bootstrap-mode', args.bootstrap_mode,
     ]
 
     if args.daa:
-       bootrom_app.extend(['-s', args.bootstrap_sign, '-t', args.bootstrap_auth])
+       bootrom_app.extend([
+           '-s', image_path / args.bootstrap_sign,
+           '-t', image_path / args.bootstrap_auth
+        ])
     else:
        # By default, if '-s' or '-t' are not defined,
        # bootrom_tool will try to use auth_sv5.auth and lk.bin.sign
