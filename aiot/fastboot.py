@@ -4,6 +4,7 @@
 # Author: Macpaul Lin <macpaul.lin@mediatek.com>
 
 import subprocess
+import threading
 import time
 from fastboot_log_parser import FlashLogParser
 
@@ -53,18 +54,28 @@ class Fastboot:
             stdout = ''
             process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
 
-            while True:
-                output = process.stdout.readline()
-                if output == '' and process.poll() is not None:
-                    break
-                if output:
-                    stdout = output.strip() + "\n"
-                    self.parser.parse_log(stdout)
-                    json_output = self.parser.get_event_as_json()
-                    # In daemon mode, a callback function should be provided to handle output processing.
-                    if callback:
-                        callback(json_output)
+            # Thread to read process.stdout lines
+            def reader_thread_fn():
+                for output in iter(process.stdout.readline, ''):
+                    if output == '' and process.poll() is not None:
+                        break
+                    if output:
+                        line = output.strip() + "\n"
+                        self.parser.parse_log(line)
+                        json_output = self.parser.get_event_as_json()
+                        if callback:
+                            callback(json_output)
+                process.stdout.close()
 
+            reader_thread = threading.Thread(
+                target=reader_thread_fn,
+                daemon=True
+            )
+            reader_thread.start()
+
+            # Wait for process to finish and reader thread to complete
+            process.wait()
+            reader_thread.join()
         else:
             subprocess.run(command, check=True)
 
