@@ -28,6 +28,13 @@ class Flash:
         self.fastboot = aiot.Fastboot(dry_run=dry_run, daemon=daemon)
         self.logger = logging.getLogger('aiot')
 
+    def handle_output(self, json_output):
+        # Handle the output from the flash operation.
+        if self.queue:
+            self.queue.put(json_output)
+            if self.data_event:
+                self.data_event.set()  # Notify the flash daemon
+
     def flash_partition(self, partition, filename):
         # Flash a specific partition with the given filename.
         if hasattr(self.img, 'generate_file'):
@@ -35,15 +42,10 @@ class Flash:
 
         path = pathlib.Path(self.img.path) / filename
 
-        def handle_output(json_output):
-            # Handle the output from the flash operation.
-            if self.queue:
-                self.queue.put(json_output)
-                if self.data_event:
-                    self.data_event.set()  # Notify the flash daemon
-
         if self.daemon:
-            self.fastboot.flash(partition, str(path), handle_output, fastboot_sn=self.fastboot_sn)
+            process = self.fastboot.flash(partition, str(path), self.handle_output, fastboot_sn=self.fastboot_sn)
+            if process:
+                process.wait()
         else:
             print(f"flashing {partition}={filename}")
             self.fastboot.flash(partition, str(path))

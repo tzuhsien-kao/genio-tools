@@ -74,7 +74,10 @@ def update_status_display_tui(stdscr, json_data):
     for row, (status_info_json_str) in enumerate(json_data, start=1):
         id = status_info_json_str.get("id")
         status_info = status_json_to_info(status_info_json_str)
-        stdscr.addstr(row, 0, f"Worker {id} status: {status_info}")
+        try:
+            stdscr.addstr(row, 0, f"Worker {id} status: {status_info}")
+        except Exception:
+            pass
     stdscr.refresh()
 
 def cleanup(daemon_process):
