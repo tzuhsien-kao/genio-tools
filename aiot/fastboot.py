@@ -3,6 +3,8 @@
 # Author: Fabien Parent <fparent@baylibre.com>
 # Author: Macpaul Lin <macpaul.lin@mediatek.com>
 
+import json
+import logging
 import subprocess
 import threading
 import time
@@ -45,6 +47,7 @@ class Fastboot:
         if self.dry_run:
             return
 
+        logger = logging.getLogger('aiot')
         command = [self.bin]
         if fastboot_sn:
             command += ["-s", fastboot_sn]
@@ -53,6 +56,37 @@ class Fastboot:
         if self.daemon:
             stdout = ''
             process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, universal_newlines=True)
+            last_output_time = time.time()
+            timeout_sec = 30
+            watchdog_started = False
+
+            def watchdog_fn():
+                nonlocal last_output_time
+                while process.poll() is None:
+                    if time.time() - last_output_time > timeout_sec:
+                        logger.error(f"[Fastboot] No output from fastboot for {timeout_sec} seconds, triggering callback for timeout.")
+                        if callback:
+                            callback('{"action": "Error", "error": "fastboot no output timeout"}')
+                        break
+
+            def handle_fastboot_noresp_error(json_output):
+                nonlocal last_output_time, watchdog_started
+                import json
+                json_obj = json.loads(json_output)
+                if (
+                    json_obj
+                    and json_obj.get('action') == 'writing'
+                    and json_obj.get('status') == 'OKAY'
+                    and str(json_obj.get('partition', '')).startswith('mmc')
+                ):
+                    last_output_time = time.time()
+                    if not watchdog_started:
+                        watchdog_thread = threading.Thread(
+                            target=watchdog_fn,
+                            daemon=True
+                        )
+                        watchdog_thread.start()
+                        watchdog_started = True
 
             # Thread to read process.stdout lines
             def reader_thread_fn():
@@ -65,6 +99,7 @@ class Fastboot:
                         json_output = self.parser.get_event_as_json()
                         if callback:
                             callback(json_output)
+                        handle_fastboot_noresp_error(json_output)
                 process.stdout.close()
 
             reader_thread = threading.Thread(
