@@ -143,6 +143,7 @@ class UbuntuImage:
             mbr.write(struct.pack("<I", hdr_crc32))
 
     def generate_uboot_env(self):
+        self.args.image_type = "ubuntu"
         env = aiot.UBootEnv(int(self.uboot_env_size),
                             f"{self.path}/u-boot-initial-env",
                             self.args)
