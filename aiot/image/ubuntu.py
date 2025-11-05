@@ -145,7 +145,7 @@ class UbuntuImage:
     def generate_uboot_env(self):
         env = aiot.UBootEnv(int(self.uboot_env_size),
                             f"{self.path}/u-boot-initial-env",
-                            self.args)
+                            self.args, use_android_dtbo=False)
         env.gen_mac_addr(self.eth_oui, self.num_of_eth)
         env.update_env_list(self.args.uboot_env_set)
         if not self.uboot_env_redund_support:

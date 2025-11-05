@@ -8,15 +8,19 @@ import zlib
 import struct
 
 class UBootEnv:
-    def __init__(self, env_size, env_file, args):
+    def __init__(self, env_size, env_file, args, use_android_dtbo=False):
         self.logger = logging.getLogger('aiot')
         self.env = [];
         self.env_size = env_size
         self.args = args
+        self.use_android_dtbo = use_android_dtbo
         with open(env_file, "r") as env:
             self.env = env.readlines()
         if self.args.dtbo_index:
-            self.add("dtbo_index", self.args.dtbo_index)
+            if self.use_android_dtbo:
+                self.add("adtbo_idx", self.args.dtbo_index)
+            else:
+                self.add("dtbo_index", self.args.dtbo_index)
         if self.args.serialno:
             self.add("serial#", self.args.serialno)
 
