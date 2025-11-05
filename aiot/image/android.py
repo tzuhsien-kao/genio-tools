@@ -15,9 +15,9 @@ class AndroidImage:
         self.path = args.path
         self.partitions = {
             "mmc0": "MBR_EMMC",
-            "mmc0boot0": "bl2.img",
+            "mmc0boot0": "mtk-boot.bin",
             "mmc0boot1": "u-boot-env.bin",
-            "bootloaders": "fip.bin",
+            "bootloaders": "bootloaders.img",
         }
         self.groups = {
             "all": {
