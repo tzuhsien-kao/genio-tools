@@ -16,7 +16,10 @@ class UBootEnv:
         with open(env_file, "r") as env:
             self.env = env.readlines()
         if self.args.dtbo_index:
-            self.add("dtbo_index", self.args.dtbo_index)
+            if hasattr(self.args, "image_type") and self.args.image_type == "android":
+                self.add("adtbo_idx", self.args.dtbo_index)
+            else:
+                self.add("dtbo_index", self.args.dtbo_index)
         if self.args.serialno:
             self.add("serial#", self.args.serialno)
 

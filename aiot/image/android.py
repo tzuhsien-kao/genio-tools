@@ -53,6 +53,7 @@ class AndroidImage:
         self.generate_uboot_env()
 
     def generate_uboot_env(self):
+        self.args.image_type = "android"
         env = aiot.UBootEnv(8192,
                             f"{self.path}/u-boot-initial-env",
                             self.args)
