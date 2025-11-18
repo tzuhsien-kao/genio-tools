@@ -344,8 +344,18 @@ class YoctoImage:
 
     @classmethod
     def detect(cls, path):
-        manifests = list(Path(path).glob("*.manifest"))
-        return len(manifests) > 0
+        p = Path(path).absolute()
+        manifests = list(p.glob("*.manifest"))
+        found = len(manifests) > 0
+
+        if not found:
+            logger = logging.getLogger('aiot')
+            logger.debug(f"No *.manifest found in: {p}")
+            logger.debug(f"Files in path:")
+            contents = os.listdir(path)
+            logger.debug(contents)
+
+        return found
 
     @classmethod
     def setup_parser(cls, parser):
