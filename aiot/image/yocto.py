@@ -240,6 +240,7 @@ class YoctoImage:
         return legacy_env_size
 
     def generate_uboot_env(self):
+        self.args.image_type = "yocto"
         args_env_size = self.args.uboot_env_size
         if args_env_size:
             env_size = args_env_size

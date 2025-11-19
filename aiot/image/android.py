@@ -6,6 +6,7 @@ from pathlib import Path
 import configparser
 import oyaml
 import argparse
+import logging
 
 import aiot
 
@@ -15,14 +16,14 @@ class AndroidImage:
         self.path = args.path
         self.partitions = {
             "mmc0": "MBR_EMMC",
-            "mmc0boot0": "bl2.img",
+            "mmc0boot0": "mtk-boot.bin",
             "mmc0boot1": "u-boot-env.bin",
-            "bootloaders": "fip.bin",
+            "bootloaders": "bootloaders.img",
         }
         self.groups = {
             "all": {
-                "erase": ["mmc0", "mmc0boot0", "mmc0boot1"],
                 "flash": ["mmc0", "mmc0boot0", "mmc0boot1", "bootloaders"],
+                "erase_after_flash": ["misc", "metadata"],
             },
         }
 
@@ -38,12 +39,21 @@ class AndroidImage:
             for name in partitions:
                 partition = partitions[name]
                 if 'file' in partition:
-                    self.groups["all"]["flash"].append(name)
-                    self.partitions[name] = partition['file']
+                    ignore_file_not_found = partition.get('ignoreFileNotFound', False)
+                    file_path = Path(self.path) / partition['file']
+                    if file_path.exists():
+                        self.groups["all"]["flash"].append(name)
+                        self.partitions[name] = partition['file']
+                    elif ignore_file_not_found:
+                        logging.warning(f"{file_path} not found for {name} but is ignorable. Skipping ...")
+                    else:
+                        logging.error(f"{file_path} not found for {name}")
+
 
         self.generate_uboot_env()
 
     def generate_uboot_env(self):
+        self.args.image_type = "android"
         env = aiot.UBootEnv(8192,
                             f"{self.path}/u-boot-initial-env",
                             self.args)
