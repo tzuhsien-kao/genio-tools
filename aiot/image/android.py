@@ -22,8 +22,8 @@ class AndroidImage:
         }
         self.groups = {
             "all": {
-                "erase": ["mmc0", "mmc0boot0", "mmc0boot1"],
                 "flash": ["mmc0", "mmc0boot0", "mmc0boot1", "bootloaders"],
+                "erase_after_flash": ["misc", "metadata"],
             },
         }
 
