@@ -92,17 +92,20 @@ class Flash:
                 if self.data_event:
                     self.data_event.set()  # Notify the flash daemon
 
-        for action in ['erase', 'flash', 'erase_after_flash']:
-            for partition in actions.get(action, []):
+        if 'erase' in actions and not self.skip_erase:
+            for partition in actions['erase']:
+                self.erase_partition(partition)
+
+        if 'flash' in actions:
+            for partition in actions['flash']:
                 if partition not in self.img.partitions:
                     self.logger.error(f"Invalid partition {partition}")
                     return
-                if action == 'erase' and not self.skip_erase:
-                    self.erase_partition(partition)
-                elif action == 'flash':
-                    self.flash_partition(partition, self.img.partitions[partition])
-                elif action == 'erase_after_flash' and not self.skip_erase:
-                    self.erase_partition(partition)
+                self.flash_partition(partition, self.img.partitions[partition])
+
+        if 'erase_after_flash' in actions and not self.skip_erase:
+            for partition in actions['erase_after_flash']:
+                self.erase_partition(partition)
 
     def check(self, targets):
         # Check if the specified targets are valid for flashing.
