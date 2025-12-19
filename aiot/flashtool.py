@@ -117,6 +117,7 @@ class FlashTool(aiot.App):
     def detect_image(self, args):
         # Detect the appropriate image based on the provided path.
         for name, img in images.items():
+            self.logger.debug(f"Detecting image type: {name}")
             if img.detect(args.path):
                 image = img(args)
                 image.setup_local_parser()

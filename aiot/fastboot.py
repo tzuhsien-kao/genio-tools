@@ -7,6 +7,7 @@ import json
 import logging
 import subprocess
 import threading
+import sys
 import time
 from fastboot_log_parser import FlashLogParser
 
@@ -28,7 +29,27 @@ class Fastboot:
             self.parser.parse_log(stdout)
             return self.parser.get_event_as_json()
         else:
-            subprocess.run(command, check=True)
+            try:
+                p = subprocess.Popen(
+                        command,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,  # merge STDERR into STDOUT
+                        shell=False,               # we need cmd parsing
+                        text=True,                 # decode stdout to string
+                    )
+
+                # Poll process STDOUT and print immediately
+                while True:
+                    output = p.stdout.readline().rstrip()
+                    if output == '' and p.poll() is not None:
+                        break
+                    if output:
+                        print(output, flush=True)
+
+                retcode = p.poll()
+                return retcode
+            except KeyboardInterrupt:
+                sys.exit(1)
 
     def devices(self):
         # List connected fastboot devices.
@@ -112,7 +133,7 @@ class Fastboot:
             process.wait()
             reader_thread.join()
         else:
-            subprocess.run(command, check=True)
+            self._run_command(command)
 
     def fetch(self, partition, filename):
         # Fetch a partition to a specified file.
