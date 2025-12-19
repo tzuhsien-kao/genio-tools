@@ -32,6 +32,10 @@ class App: # pylint: disable=too-few-public-methods
     def execute(self):
         args = self.parser.parse_args()
 
+        # Ensure we flush stdout every line, even when wrapped in
+        # other automation scripts
+        sys.stdout.reconfigure(line_buffering=True)
+
         if args.version:
             print(aiot.version)
             sys.exit(0)
