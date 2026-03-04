@@ -60,9 +60,3 @@ def bootrom_log_parser(log):
         parse_log_line(line, result)
 
     return json.dumps(result, indent=4)
-
-    # Parse the log line by line
-    for line in log.splitlines():
-        parse_log_line(line, result)
-
-    return json.dumps(result, indent=4)
