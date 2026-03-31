@@ -35,6 +35,21 @@ class Flash:
             if self.data_event:
                 self.data_event.set()  # Notify the flash daemon
 
+    def _wait_for_fastboot_device(self, serial, timeout=30):
+        # Wait for a specific fastboot device to appear by serial number.
+        self.logger.info(f"Waiting for fastboot device {serial}...")
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            devices = self.fastboot.devices()
+            if serial in devices:
+                self.logger.info(f"Fastboot device {serial} found.")
+                return True
+            time.sleep(1)
+        self.logger.warning(
+            f"Fastboot device {serial} not found within {timeout}s, proceeding anyway."
+        )
+        return False
+
     def flash_partition(self, partition, filename):
         # Flash a specific partition with the given filename.
         if hasattr(self.img, 'generate_file'):
@@ -48,7 +63,7 @@ class Flash:
                 process.wait()
         else:
             print(f"flashing {partition}={filename}")
-            self.fastboot.flash(partition, str(path))
+            self.fastboot.flash(partition, str(path), fastboot_sn=self.fastboot_sn)
 
     def erase_partition(self, partition):
         # Erase a specific partition.
@@ -60,30 +75,44 @@ class Flash:
                     self.data_event.set()  # Notify the flash daemon
         else:
             print(f"erasing {partition}")
-            self.fastboot.erase(partition)
+            self.fastboot.erase(partition, fastboot_sn=self.fastboot_sn)
 
     def flash_group(self, group):
         # Flash a group of partitions defined in the image.
         actions = self.img.groups.get(group, {})
         if self.daemon:
-            timeout = 10
-            start_time = time.time()
-
-            while not self.fastboot.devices():
-                if time.time() - start_time > timeout:
-                    data = {'action': 'Error: Jump DA failed', 'error': 'Jump DA: Exceeded 10 seconds.'}
+            if self.fastboot_sn:
+                # me_id-based: wait for the predicted fastboot device
+                if not self._wait_for_fastboot_device(self.fastboot_sn, timeout=10):
+                    data = {'action': 'Error: Jump DA failed',
+                            'error': f'Fastboot device {self.fastboot_sn} not found within timeout.'}
                     json_output = json.dumps(data, indent=4)
                     if self.queue:
                         self.queue.put(json_output)
                         if self.data_event:
                             self.data_event.set()  # Notify the flash daemon
-                    break
-                time.sleep(1)
+                    return
+                # Register the predicted serial with the daemon
+                self.daemon.assigned_sn.add(self.fastboot_sn)
+            else:
+                # Fallback: discover new fastboot device when me_id is not available
+                timeout = 10
+                start_time = time.time()
 
-            # Assign fastboot serial number
-            self.fastboot_sn = self.daemon.assign_sn_flasher(self.fastboot.devices())
-            if not self.fastboot_sn: # Abort flash if jump DA failed (Cannot find new fastboot device)
-                return
+                while not self.fastboot.devices():
+                    if time.time() - start_time > timeout:
+                        data = {'action': 'Error: Jump DA failed', 'error': 'Jump DA: Exceeded 10 seconds.'}
+                        json_output = json.dumps(data, indent=4)
+                        if self.queue:
+                            self.queue.put(json_output)
+                            if self.data_event:
+                                self.data_event.set()  # Notify the flash daemon
+                        break
+                    time.sleep(1)
+
+                self.fastboot_sn = self.daemon.assign_sn_flasher(self.fastboot.devices())
+                if not self.fastboot_sn:  # Abort flash if jump DA failed (Cannot find new fastboot device)
+                    return
 
             data = {"fastboot_sn": self.fastboot_sn}
             json_output = json.dumps(data, indent=4)
@@ -168,7 +197,7 @@ class Flash:
                 if self.data_event:
                     self.data_event.set()  # notify flash_daemon
         else:
-            self.fastboot.reboot()
+            self.fastboot.reboot(fastboot_sn=self.fastboot_sn)
 
     def flash_worker(self, image, args, queue=None, data_event=None):
         # Worker thread that performs the flashing.
@@ -192,6 +221,10 @@ class Flash:
 
         if not args.skip_bootstrap:
             self.handle_bootstrap(args, queue, data_event)
+
+        # In non-daemon mode, wait for the predicted fastboot device to appear
+        if self.fastboot_sn and not args.daemon:
+            self._wait_for_fastboot_device(self.fastboot_sn)
 
         self.flash(args.targets)
 
@@ -231,10 +264,20 @@ class Flash:
     def handle_bootstrap(self, args, queue, data_event):
         # Handle the bootstrap process.
         bootrom_output = run_bootrom(args)
-        bootrom_json = bootrom_log_parser(bootrom_output)
+        bootrom_json_str = bootrom_log_parser(bootrom_output)
+        bootrom_data = json.loads(bootrom_json_str)
+
+        me_id = bootrom_data.get('me_id', '')
+        self.logger.info(f"BROM me_id={me_id}")
+
+        # Derive fastboot serial from the first 64-bit (16 hex chars) of me_id.
+        # lk.bin always uses the first 64-bit of me_id as the fastboot device serial.
+        if me_id and len(me_id) >= 16:
+            self.fastboot_sn = me_id[:16].upper()
+            self.logger.info(f"Predicted fastboot serial: {self.fastboot_sn}")
 
         if queue:
-            queue.put(bootrom_json)
+            queue.put(bootrom_json_str)
         if data_event:
             data_event.set()  # notify flash_daemon
 
