@@ -10,7 +10,8 @@ patterns = {
     "com_port": re.compile(r"Opening (\/dev\/ttyACM\d+|COM\d+) using baudrate=(\d+)"),
     "hw_code": re.compile(r"Connected to MediaTek SoC: hw_code\[(0x[0-9a-fA-F]+)\]"),
     "address": re.compile(r"Sending bootstrap to address: (0x[0-9a-fA-F]+)"),
-    "jumping": re.compile(r"Jumping to bootstrap at address (0x[0-9a-fA-F]+) in (AArch64) mode")
+    "jumping": re.compile(r"Jumping to bootstrap at address (0x[0-9a-fA-F]+) in (AArch64) mode"),
+    "me_id": re.compile(r"me_id\[([0-9a-fA-F]+)\]")
 }
 
 action_messages = {
@@ -40,6 +41,10 @@ def parse_log_line(line, result):
         match = patterns["jumping"].search(line)
         if match:
             result["address"], result["mode"] = match.groups()
+    elif "me_id" in line:
+        match = patterns["me_id"].search(line)
+        if match:
+            result["me_id"] = match.group(1)
 
 def bootrom_log_parser(log):
     # Parse the bootrom log and convert it to JSON.
@@ -52,7 +57,8 @@ def bootrom_log_parser(log):
         "baudrate": "",
         "hw_code": "",
         "address": "",
-        "mode": ""
+        "mode": "",
+        "me_id": ""
     }
 
     # Parse the log line by line
