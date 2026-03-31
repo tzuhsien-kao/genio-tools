@@ -120,7 +120,7 @@ class YoctoImage:
         # Parse pre-defined dtbo list in u-boot-initial-env
         # by setting KERNEL_DEVICETREE_OVERLAYS_AUTOLOAD options
         # in Yocto's local.conf
-        initial_dtbo = set()
+        initial_dtbo = []
         with open(os.path.join(self.path, 'u-boot-initial-env'), 'r') as fp:
             config_string = '[config]\n' + fp.read()
             config = configparser.ConfigParser(allow_no_value = True, strict = False)
@@ -130,9 +130,10 @@ class YoctoImage:
             # 2. EFI boot path takes 'list_dtbo' in u-boot-env.bin;
             # 3. In secure boot scenarios, the one embedded in the U-Boot device tree in fip.bin
             #
-            # We only take care of 1 & 2, which allows dyanmic update of dtbo list.
-            # These two variables, 'boot_conf' and 'list_dtbo' should be exactly the same,
-            # but we extract their union just in case u-boot-initial-env is updated manually.
+            # We only take care of 1 & 2, which allows dynamic update of dtbo list.
+            # While the two variables 'boot_conf' and 'list_dtbo' should be exactly the same
+            # when building the image, u-boot-initial-env may be edited manually before running
+            # the tool. So we append any non-duplicated entries in list_dtbo to boot_conf.
             try:
                 boot_conf_value = config['config'].get('boot_conf', "")
                 boot_conf = []
@@ -146,12 +147,18 @@ class YoctoImage:
 
                 self.logger.debug(f"u-boot-initial-env: boot_conf: dtbo={boot_conf}")
                 self.logger.debug(f"u-boot-initial-env: list_dtbo: dtbo={list_dtbo}")
-                initial_dtbo = set(boot_conf)
-                initial_dtbo = initial_dtbo.union(list_dtbo)
+                # Preserve relative order of overlays while removing duplicated entries
+                # Note that boot_conf and list_dtbo may already contain duplicated entries
+                seen = set()
+                initial_dtbo = []
+                for d in boot_conf + list_dtbo:
+                    if d and d not in seen:
+                        initial_dtbo.append(d)
+                        seen.add(d)
             except KeyError:
                 self.logger.warn("failed to parse boot_conf or list_dtbo from u-boot-initial-env")
                 self.logger.debug(traceback.format_exc())
-                initial_dtbo = set()
+                initial_dtbo = []
 
         for dtbo in initial_dtbo:
             if dtbo not in self.kernel_dtbo:
