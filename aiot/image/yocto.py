@@ -120,8 +120,15 @@ class YoctoImage:
         # Parse pre-defined dtbo list in u-boot-initial-env
         # by setting KERNEL_DEVICETREE_OVERLAYS_AUTOLOAD options
         # in Yocto's local.conf
+        initial_env_path = os.path.join(self.path, 'u-boot-initial-env')
         initial_dtbo = []
-        with open(os.path.join(self.path, 'u-boot-initial-env'), 'r') as fp:
+        try:
+            fp = open(initial_env_path, 'r')
+        except FileNotFoundError:
+            self.logger.warn(f"Skipping dtbo autoload: u-boot-initial-env not found at {initial_env_path}")
+            return
+
+        with fp:
             config_string = '[config]\n' + fp.read()
             config = configparser.ConfigParser(allow_no_value = True, strict = False)
             config.read_string(config_string)
