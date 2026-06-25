@@ -19,7 +19,6 @@
 # https://www.ftdichip.com/old2020/Support/Utilities.htm#FT_PROG
 
 import logging
-import sys
 import time
 from enum import IntEnum
 
@@ -30,29 +29,6 @@ try:
     import ftd2xx as ftd
 except Exception as e:
     ftd = None
-
-def _input_with_timeout(prompt, timeout=10):
-    """Prompt the user for input with a timeout (Windows).
-    Returns the stripped, lowercased input, or '' on timeout."""
-    import msvcrt
-    print(prompt, end='', flush=True)
-    chars = []
-    deadline = time.monotonic() + timeout
-    while True:
-        remaining = deadline - time.monotonic()
-        if remaining <= 0:
-            print(f"\nNo response within {timeout}s, aborting.")
-            return ''
-        if msvcrt.kbhit():
-            ch = msvcrt.getwch()
-            if ch in ('\r', '\n'):
-                print()
-                return ''.join(chars).strip().lower()
-            chars.append(ch)
-            print(ch, end='', flush=True)
-        else:
-            time.sleep(0.05)
-
 
 class FT232R_CBUS_OPTIONS(IntEnum):
     '''
@@ -85,7 +61,10 @@ class FtdiControl:
             self.logger.debug(f"FTDI D2xx library version: {ftd.getLibraryVersion()}")
         self.serial = serial
 
-    def _open_device(self, serial=None):
+    def find_device(self, serial = None):
+        if not ftd:
+            raise RuntimeError("FTDI D2xx library not found")
+
         if serial:
             d = ftd.openEx(serial.encode('utf-8'))
         else:
@@ -102,48 +81,6 @@ class FtdiControl:
         if d.type != ftd.defines.Device.FT_232R:
             raise RuntimeError("Only FT232R is supported for now")
         return d
-
-    def find_device(self, serial = None):
-        if not ftd:
-            raise RuntimeError("FTDI D2xx library not found")
-
-        try:
-            return self._open_device(serial)
-        except ftd.DeviceError as e:
-            self.logger.info(
-                f"Cannot open FTDI device ({e}), "
-                "checking if COM port is held by another application...")
-
-        # The FTDI device may be inaccessible because a terminal application
-        # (e.g. TeraTerm) holds the VCP COM port open.  Try to release it.
-        from aiot.win_handle import find_ftdi_com_port, find_com_port_holder
-
-        com, nt_path = find_ftdi_com_port(serial)
-        if not com:
-            raise RuntimeError(
-                "Cannot open FTDI device and unable to find its COM port. "
-                "Please close any application using the FTDI COM port and retry.")
-
-        holder = find_com_port_holder(com, nt_path)
-        if not holder:
-            raise RuntimeError(
-                f"Cannot open FTDI device. {com} may be held by another "
-                "application. Please close it and retry.")
-
-        print(f"\n{com} is currently opened by:")
-        print(f"  {holder.exe_path} (PID {holder.pid})\n")
-        answer = _input_with_timeout(
-            "Terminate this process and continue? [y/N] ", timeout=10)
-        if answer != 'y':
-            sys.exit(0)
-
-        if not holder.terminate():
-            raise RuntimeError(
-                f"Failed to terminate {holder.exe_path} (PID {holder.pid}).")
-
-        self.logger.info(f"Released {com}, retrying D2XX open...")
-        time.sleep(0.5)
-        return self._open_device(serial)
 
     def print_device_list(self):
         '''

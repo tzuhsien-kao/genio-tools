@@ -70,12 +70,18 @@ class BoardControl:
         '''
         self._set_gpio(rst = 0, dl = 1)
         time.sleep(0.1)
+
+        # reset board while keep DL pin to HIGH to enter USB DL mode
         self._set_gpio(rst = 1, dl = 1)
         time.sleep(0.1)
         self._set_gpio(rst = 0, dl = 1)
+
+        # Wait for BootROM to enter download mode,
+        # then release DL pin.
+        time.sleep(0.3)
+        self._set_gpio(rst = 0, dl = 0)
+
         # we need to release FTDI device
-        # note that the DL pin state remains HIGH
-        # even if we close this device.
         self.dev.close()
 
     def power(self):
