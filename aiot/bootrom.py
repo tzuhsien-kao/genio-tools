@@ -1,9 +1,32 @@
+import logging
 import platform
+import re
 import aiot_bootrom.bootrom
 from pathlib import Path
 
+logger = logging.getLogger('aiot')
+
+# Default bootstrap binary names to auto-detect, in priority order.
+# Entries are treated as regular expressions matched against file names,
+# so 'mt.+-da.bin' matches boards like 'mt8365-da.bin' or 'mt8390-da.bin'.
+DEFAULT_BOOTSTRAP_NAMES = ['lk.bin', 'da.bin', r'mt.+-da\.bin']
+
 if platform.system() == 'Linux':
     import pyudev
+
+def find_bootstrap(image_path):
+    # Search image_path for a default bootstrap binary, returning the name of
+    # the first match in DEFAULT_BOOTSTRAP_NAMES priority order, or None.
+    image_path = Path(image_path)
+    if not image_path.is_dir():
+        return None
+    entries = sorted(entry.name for entry in image_path.iterdir() if entry.is_file())
+    for pattern in DEFAULT_BOOTSTRAP_NAMES:
+        regex = re.compile(pattern)
+        for name in entries:
+            if regex.fullmatch(name):
+                return name
+    return None
 
 def udev_wait():
     context = pyudev.Context()
@@ -22,9 +45,10 @@ def add_bootstrap_group(parser):
         default=".")
     group.add_argument('--skip-bootstrap', action="store_true",
         help="Don't bootstrap the board")
-    group.add_argument('--bootstrap', type=str, default='lk.bin',
+    group.add_argument('--bootstrap', type=str, default=None,
         metavar='lk.bin',
-        help='bootstrap binary used for flashing (default: lk.bin)')
+        help='bootstrap binary used for flashing '
+             '(default: auto-detect lk.bin, da.bin, or mt*-da.bin)')
     group.add_argument('--bootstrap-sign', type=str, default='lk.sign',
         metavar='lk.sign',
         help='bootstrap binary signature used for flashing with DAA enabled (default: lk.sign)')
@@ -41,9 +65,22 @@ def add_bootstrap_group(parser):
 
 def run_bootrom(args):
     image_path = Path(args.path)
+
+    bootstrap = args.bootstrap
+    if bootstrap is None:
+        bootstrap = find_bootstrap(image_path)
+        if bootstrap is None:
+            names = ', '.join(DEFAULT_BOOTSTRAP_NAMES)
+            raise FileNotFoundError(
+                f"No bootstrap binary found in '{image_path}' "
+                f"(searched for: {names}). "
+                f"Use --bootstrap to specify one manually.")
+
+    logger.info(f"Using bootstrap binary: {bootstrap}")
+
     bootrom_app = [
         'aiot-bootrom',
-        '--bootstrap', image_path / args.bootstrap,
+        '--bootstrap', image_path / bootstrap,
         '--bootstrap-addr', hex(args.bootstrap_addr),
         '--bootstrap-mode', args.bootstrap_mode,
     ]
