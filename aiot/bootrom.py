@@ -75,6 +75,9 @@ def run_bootrom(args):
                 f"No bootstrap binary found in '{image_path}' "
                 f"(searched for: {names}). "
                 f"Use --bootstrap to specify one manually.")
+    elif not (image_path / bootstrap).is_file():
+        raise FileNotFoundError(
+            f"Bootstrap binary '{image_path / bootstrap}' does not exist.")
 
     logger.info(f"Using bootstrap binary: {bootstrap}")
 

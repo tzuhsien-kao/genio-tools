@@ -191,7 +191,8 @@ class Flash:
             self.handle_board_error(e, args, result, "Board control failed.")
 
         if not args.skip_bootstrap:
-            self.handle_bootstrap(args, queue, data_event)
+            if not self.handle_bootstrap(args, queue, data_event):
+                return
 
         self.flash(args.targets)
 
@@ -230,13 +231,27 @@ class Flash:
 
     def handle_bootstrap(self, args, queue, data_event):
         # Handle the bootstrap process.
-        bootrom_output = run_bootrom(args)
+        # Returns True if bootstrap succeeded, False if it failed and flashing
+        # must be aborted.
+        try:
+            bootrom_output = run_bootrom(args)
+        except FileNotFoundError as e:
+            self.logger.error(str(e))
+            if queue:
+                result = {"action": "Starting", "error": str(e)}
+                queue.put(json.dumps(result, indent=4))
+                if data_event:
+                    data_event.set()  # notify flash_daemon
+            return False
+
         bootrom_json = bootrom_log_parser(bootrom_output)
 
         if queue:
             queue.put(bootrom_json)
         if data_event:
             data_event.set()  # notify flash_daemon
+
+        return True
 
     def process(self, targets):
         # Main process method to handle flashing tasks.
