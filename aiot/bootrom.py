@@ -51,15 +51,18 @@ def add_bootstrap_group(parser):
              '(default: auto-detect lk.bin, da.bin, or mt*-da.bin)')
     group.add_argument('--bootstrap-sign', type=str, default='lk.sign',
         metavar='lk.sign',
-        help='bootstrap binary signature used for flashing with DAA enabled (default: lk.sign)')
+        help='bootstrap binary signature used for flashing with DAA enabled '
+             '(default: lk.sign)')
     group.add_argument('--bootstrap-auth', type=str, default='auth_sv5.auth',
         metavar='auth_sv5.auth',
-        help='authentication file used for flashing with DAA enabled (default: auth_sv5.auth)')
+        help='authentication file used for flashing with DAA enabled '
+             '(default: auth_sv5.auth)')
     group.add_argument('--daa', action="store_true",
         help="flash with DAA enabled")
     group.add_argument('--bootstrap-addr', type=int, default=0x0,
         metavar='0x0',
-        help='Address where the bootstrap binary will be loaded (default: 0x0)')
+        help='Address where the bootstrap binary will be loaded '
+             '(default: 0x0)')
     group.add_argument('--bootstrap-mode', type=str, default='aarch64',
                        choices=['aarch64', 'aarch32'])
 
@@ -89,15 +92,16 @@ def run_bootrom(args):
     ]
 
     if args.daa:
-       bootrom_app.extend([
-           '-s', image_path / args.bootstrap_sign,
-           '-t', image_path / args.bootstrap_auth
+        bootrom_app.extend([
+            '-s', image_path / args.bootstrap_sign,
+            '-t', image_path / args.bootstrap_auth,
         ])
     else:
-       # By default, if '-s' or '-t' are not defined,
-       # bootrom_tool will try to use auth_sv5.auth and lk.bin.sign
-       # To avoid bootrom_tool from sending these files, pass invalid values for -s and -t
-       bootrom_app.extend(['-s', '', '-t', ''])
+        # By default, if '-s' or '-t' are not defined,
+        # bootrom_tool will try to use auth_sv5.auth and lk.bin.sign.
+        # To avoid bootrom_tool from sending these files, pass invalid
+        # values for -s and -t.
+        bootrom_app.extend(['-s', '', '-t', ''])
 
     if platform.system() == 'Linux':
         udev_wait()
