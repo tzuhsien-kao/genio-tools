@@ -91,6 +91,10 @@ class FlashTool(aiot.App):
             group = self.parser.add_argument_group('Board Control (using ftd2xx driver)')
             group.add_argument('-c', '--ftdi-serial', '-s', type=str, default=None, help='Serial number of the board control COM port. This should be the serial reported by "aiot-board list".')
             self.add_gpio_arguments(group)
+        elif platform.system() == 'Darwin':
+            group = self.parser.add_argument_group('Board Control (using pylibftdi)')
+            group.add_argument('-c', '--ftdi-serial', '-s', type=str, default=None, help='Serial number of the board control FTDI device. This should be the serial reported by "aiot-board list".')
+            self.add_gpio_arguments(group)
 
         # Setup image-specific arguments
         for name, image in images.items():

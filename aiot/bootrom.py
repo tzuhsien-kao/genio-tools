@@ -1,6 +1,9 @@
+# SPDX-License-Identifier: MIT
+
 import logging
 import platform
 import re
+import subprocess
 import aiot_bootrom.bootrom
 from pathlib import Path
 
@@ -11,8 +14,20 @@ logger = logging.getLogger('aiot')
 # so 'mt.+-da.bin' matches boards like 'mt8365-da.bin' or 'mt8390-da.bin'.
 DEFAULT_BOOTSTRAP_NAMES = ['lk.bin', 'da.bin', r'mt.+-da\.bin']
 
+# ── platform-specific USB wait ──
 if platform.system() == 'Linux':
     import pyudev
+
+    def udev_wait():
+        context = pyudev.Context()
+        monitor = pyudev.Monitor.from_netlink(context)
+        monitor.filter_by(subsystem="usb")
+
+        for action, device in monitor:
+            if 'ID_VENDOR_ID' in device and 'ID_MODEL_ID' in device:
+                if device['ID_VENDOR_ID'] == '0e8d':
+                    if action == 'bind':
+                        break
 
 def find_bootstrap(image_path):
     # Search image_path for a default bootstrap binary, returning the name of
@@ -28,17 +43,7 @@ def find_bootstrap(image_path):
                 return name
     return None
 
-def udev_wait():
-    context = pyudev.Context()
-    monitor = pyudev.Monitor.from_netlink(context)
-    monitor.filter_by(subsystem="usb")
-
-    for action, device in monitor:
-        if 'ID_VENDOR_ID' in device and 'ID_MODEL_ID' in device:
-            if device['ID_VENDOR_ID'] == '0e8d':
-                if action == 'bind':
-                    break
-
+# ── argument parser ──
 def add_bootstrap_group(parser):
     group = parser.add_argument_group('Bootstrap')
     group.add_argument('-P', '--path', type=str, help='Path to image',
@@ -51,18 +56,22 @@ def add_bootstrap_group(parser):
              '(default: auto-detect lk.bin, da.bin, or mt*-da.bin)')
     group.add_argument('--bootstrap-sign', type=str, default='lk.sign',
         metavar='lk.sign',
-        help='bootstrap binary signature used for flashing with DAA enabled (default: lk.sign)')
+        help='bootstrap binary signature used for flashing with DAA enabled '
+             '(default: lk.sign)')
     group.add_argument('--bootstrap-auth', type=str, default='auth_sv5.auth',
         metavar='auth_sv5.auth',
-        help='authentication file used for flashing with DAA enabled (default: auth_sv5.auth)')
+        help='authentication file used for flashing with DAA enabled '
+             '(default: auth_sv5.auth)')
     group.add_argument('--daa', action="store_true",
         help="flash with DAA enabled")
     group.add_argument('--bootstrap-addr', type=int, default=0x0,
         metavar='0x0',
-        help='Address where the bootstrap binary will be loaded (default: 0x0)')
+        help='Address where the bootstrap binary will be loaded '
+             '(default: 0x0)')
     group.add_argument('--bootstrap-mode', type=str, default='aarch64',
                        choices=['aarch64', 'aarch32'])
 
+# ── bootrom runner ──
 def run_bootrom(args):
     image_path = Path(args.path)
 
@@ -89,16 +98,19 @@ def run_bootrom(args):
     ]
 
     if args.daa:
-       bootrom_app.extend([
-           '-s', image_path / args.bootstrap_sign,
-           '-t', image_path / args.bootstrap_auth
+        bootrom_app.extend([
+            '-s', image_path / args.bootstrap_sign,
+            '-t', image_path / args.bootstrap_auth,
         ])
     else:
-       # By default, if '-s' or '-t' are not defined,
-       # bootrom_tool will try to use auth_sv5.auth and lk.bin.sign
-       # To avoid bootrom_tool from sending these files, pass invalid values for -s and -t
-       bootrom_app.extend(['-s', '', '-t', ''])
+        # By default, if '-s' or '-t' are not defined,
+        # bootrom_tool will try to use auth_sv5.auth and lk.bin.sign.
+        # To avoid bootrom_tool from sending these files, pass invalid
+        # values for -s and -t.
+        bootrom_app.extend(['-s', '', '-t', ''])
 
+    # udev is Linux-only; on Darwin/Windows we skip the udev bind wait
+    # and rely on aiot-bootrom's own retry loop.
     if platform.system() == 'Linux':
         udev_wait()
     if args.daemon:
@@ -107,6 +119,6 @@ def run_bootrom(args):
         except subprocess.CalledProcessError as e:
             return e.stdout
         except KeyboardInterrupt:
-            pass
+            return None
     else:
         return aiot_bootrom.bootrom.run(bootrom_app)

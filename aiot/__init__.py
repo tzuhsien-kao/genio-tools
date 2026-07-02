@@ -17,3 +17,7 @@ if platform.system() == 'Linux':
 elif platform.system() == 'Windows':
     from aiot.boardcontrol_win import BoardControl
     from aiot.ftdi_win import FtdiControl
+elif platform.system() == 'Darwin':
+    from aiot.boardcontrol_darwin import BoardControl
+    # FtdiControl (list/program-ftdi) is not supported on Darwin.
+    FtdiControl = None

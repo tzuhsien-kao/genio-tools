@@ -7,7 +7,7 @@ from shutil import which
 import hashlib
 import platform, os
 
-if platform.system() != "Windows":
+if platform.system() == "Linux":
     import grp
 
 import aiot
@@ -67,6 +67,8 @@ SUBSYSTEM=="gpio", MODE="0660", TAG+="uaccess"
     @staticmethod
     def check_credentials():
         """Checks that we could write to some serial device, eg /dev/ttyACM0"""
+        if platform.system() != "Linux":
+            return
         print_check("Serial device write access", grp.getgrnam('dialout').gr_gid in os.getgroups(),
                     "You may experience some write permission error('open(/dev/ttyACM0): Permission denied')\n"
                     "Consider adding your user to the 'dialout' Linux group (sudo adduser `whoami` dialout)");
