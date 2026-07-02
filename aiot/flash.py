@@ -233,6 +233,19 @@ class Flash:
                 None,
                 serial=args.ftdi_serial,
             )
+        elif system == 'Darwin':
+            return aiot.BoardControl(
+                args.gpio_reset,
+                args.gpio_download,
+                args.gpio_power,
+                serial=getattr(args, 'ftdi_serial', None),
+            )
+        else:
+            raise RuntimeError(
+                f"Unsupported platform: {system}. "
+                "Board control is only implemented for Linux, Windows, "
+                "and Darwin."
+            )
 
     def handle_board_error(self, error, args, result, message):
         warning_str = (
