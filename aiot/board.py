@@ -51,9 +51,14 @@ if platform.system() == 'Windows':
 """
 
 def do_board_command(args):
-    board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
-                              args.gpio_power, args.gpio_chip,
-                              serial = args.serial)
+    if platform.system() == 'Darwin':
+        board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
+                                  args.gpio_power,
+                                  serial=args.serial)
+    else:
+        board = aiot.BoardControl(args.gpio_reset, args.gpio_download,
+                                  args.gpio_power, args.gpio_chip,
+                                  serial=args.serial)
 
     if args.command == 'reset':
         board.reset()
@@ -109,12 +114,18 @@ def main():
         logger.error("No command(list/program-ftdi/reset/download) speficied.")
         parser.print_usage()
         sys.exit(-1)
-    
+
     try:
         if args.command == 'list':
+            if platform.system() == 'Darwin':
+                logger.error("'list' command is not supported on macOS.")
+                sys.exit(-1)
             ftdi = aiot.FtdiControl(args.serial)
             ftdi.print_device_list()
         elif args.command == 'program-ftdi':
+            if platform.system() == 'Darwin':
+                logger.error("'program-ftdi' command is not supported on macOS.")
+                sys.exit(-1)
             ftdi = aiot.FtdiControl(args.serial)
             ftdi.program(args.ftdi_product_name, args.gpio_reset,
                          args.gpio_download, args.gpio_power,
