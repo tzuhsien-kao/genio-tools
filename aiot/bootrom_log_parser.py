@@ -7,7 +7,10 @@ import re
 
 # Pre-compile regular expressions for log parsing
 patterns = {
-    "com_port": re.compile(r"Opening (\/dev\/ttyACM\d+|COM\d+) using baudrate=(\d+)"),
+    # Linux:   /dev/ttyACM0
+    # macOS:   /dev/tty.usbmodem* or /dev/cu.usbmodem*
+    # Windows: COM1, COM23, etc.
+    "com_port": re.compile(r"Opening (\/dev\/(?:ttyACM|tty\.|cu\.)\S+|COM\d+) using baudrate=(\d+)"),
     "hw_code": re.compile(r"Connected to MediaTek SoC: hw_code\[(0x[0-9a-fA-F]+)\]"),
     "address": re.compile(r"Sending bootstrap to address: (0x[0-9a-fA-F]+)"),
     "jumping": re.compile(r"Jumping to bootstrap at address (0x[0-9a-fA-F]+) in (AArch64) mode")
