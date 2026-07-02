@@ -36,16 +36,20 @@ setuptools.setup(
             'genio-multi-download-cli=aiot.multi_download_cli:main',
         ]},
     install_requires=[
-        'genio-bootrom>=1.2.1',
+        'genio-bootrom>=1.2.3',
         'windows-curses;platform_system=="Windows"',
         'keyboard',
-        'gpiod==1.4.0',
+        # Linux-only: libgpiod bindings (used by boardcontrol_linux)
+        'gpiod==1.4.0;platform_system=="Linux"',
         'oyaml',
         'packaging',
         'psutil',
-        'pyftdi',
-        'pyusb',
+        # pyftdi is used by boardcontrol_darwin (libusb backend) on macOS
+        # and by the FTDI helpers on Linux; on Windows we use ftd2xx.
+        'pyftdi;platform_system=="Linux" or platform_system=="Darwin"',
+        'pyusb;platform_system=="Linux"',
         'pyudev;platform_system=="Linux"',
+        # Windows-only: ftd2xx driver bindings
         'ftd2xx;platform_system=="Windows"',
         'fastboot-log-parser',
     ],
