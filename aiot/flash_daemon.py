@@ -157,7 +157,7 @@ class GenioFlashDaemon:
         system = platform.system()
         if system == 'Windows':
             self.terminate_processes(["aiot-bootrom.exe", "fastboot.exe"])
-        elif system == 'Linux':
+        elif system in ('Linux', 'Darwin'):
             self.terminate_processes(["aiot-bootrom", "fastboot"])
 
     def run(self):
