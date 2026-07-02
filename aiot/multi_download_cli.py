@@ -141,7 +141,7 @@ def key_listener():
             if keyboard.is_pressed('q'):
                 exit_program = True
         else:
-            # Linux
+            # Linux / Darwin
             if sys.stdin in select.select([sys.stdin], [], [], 0)[0] and sys.stdin.read(1) == 'q':
                 exit_program = True
         time.sleep(0.1)  # Sleep briefly to avoid high CPU usage
