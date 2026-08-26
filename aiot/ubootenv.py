@@ -36,7 +36,7 @@ class UBootEnv:
             return
         for pair in uboot_env_set:
             try:
-                k, v = pair.split("=")
+                k, v = pair.split("=", 1)
                 if not self.update(k, v):
                     self.add(k, v)
                     self.logger.info(f"Adding new uboot env: {k}={v}")
