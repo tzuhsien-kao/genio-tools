@@ -18,16 +18,31 @@ DEFAULT_BOOTSTRAP_NAMES = ['lk.bin', 'da.bin', r'mt.+-da\.bin']
 if platform.system() == 'Linux':
     import pyudev
 
-    def udev_wait():
+    def create_udev_monitor():
         context = pyudev.Context()
-        monitor = pyudev.Monitor.from_netlink(context)
+        monitor = pyudev.Monitor.from_netlink(context, source='kernel')
         monitor.filter_by(subsystem="usb")
+        monitor.start()
+        return monitor
 
+    def _is_bootrom_event(action, device):
+        if action != 'add' or device.get('DEVTYPE') != 'usb_device':
+            return False
+
+        try:
+            vendor = device.attributes.asstring('idVendor')
+            product = device.attributes.asstring('idProduct')
+        except (AttributeError, KeyError, OSError):
+            return False
+
+        return vendor.lower() == '0e8d' and product.lower() == '0003'
+
+    def udev_wait(monitor=None):
+        if monitor is None:
+            monitor = create_udev_monitor()
         for action, device in monitor:
-            if 'ID_VENDOR_ID' in device and 'ID_MODEL_ID' in device:
-                if device['ID_VENDOR_ID'] == '0e8d':
-                    if action == 'bind':
-                        break
+            if _is_bootrom_event(action, device):
+                break
 
 def find_bootstrap(image_path):
     # Search image_path for a default bootstrap binary, returning the name of
@@ -72,7 +87,7 @@ def add_bootstrap_group(parser):
                        choices=['aarch64', 'aarch32'])
 
 # ── bootrom runner ──
-def run_bootrom(args):
+def run_bootrom(args, udev_monitor=None):
     image_path = Path(args.path)
 
     bootstrap = args.bootstrap
@@ -109,10 +124,10 @@ def run_bootrom(args):
         # values for -s and -t.
         bootrom_app.extend(['-s', '', '-t', ''])
 
-    # udev is Linux-only; on Darwin/Windows we skip the udev bind wait
+    # udev is Linux-only; on Darwin/Windows we skip the kernel USB wait
     # and rely on aiot-bootrom's own retry loop.
     if platform.system() == 'Linux':
-        udev_wait()
+        udev_wait(udev_monitor)
     if args.daemon:
         try:
             return aiot_bootrom.bootrom.check_output(bootrom_app)

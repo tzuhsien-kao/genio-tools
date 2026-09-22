@@ -15,6 +15,9 @@ import aiot
 from aiot.bootrom import run_bootrom
 from aiot.bootrom_log_parser import bootrom_log_parser
 
+if platform.system() == 'Linux':
+    from aiot.bootrom import create_udev_monitor
+
 
 class Flash:
     def __init__(self, image, dry_run=False, daemon=False, verbose=False,
@@ -191,6 +194,9 @@ class Flash:
             return
 
         result = {"action": "", "error": ""}
+        udev_monitor = None
+        if platform.system() == 'Linux' and not args.skip_bootstrap:
+            udev_monitor = create_udev_monitor()
 
         try:
             board = self.initialize_board(args)
@@ -207,7 +213,8 @@ class Flash:
             )
 
         if not args.skip_bootstrap:
-            if not self.handle_bootstrap(args, queue, data_event):
+            if not self.handle_bootstrap(
+                    args, queue, data_event, udev_monitor):
                 return
 
         self.flash(args.targets)
@@ -273,11 +280,11 @@ class Flash:
             self.logger.warning(warning_str)
             self.logger.info("Continue flashing...")
 
-    def handle_bootstrap(self, args, queue, data_event):
+    def handle_bootstrap(self, args, queue, data_event, udev_monitor=None):
         # Returns True if bootstrap succeeded, False if it failed and flashing
         # must be aborted.
         try:
-            bootrom_output = run_bootrom(args)
+            bootrom_output = run_bootrom(args, udev_monitor)
         except FileNotFoundError as e:
             self.logger.error(str(e))
             if queue:
