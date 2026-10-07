@@ -199,7 +199,7 @@ class YoctoImage:
             if 'DISTRO_CODENAME' in data:
                 self.distro_codename = data['DISTRO_CODENAME']
             self.machine = data['MACHINE']
-            self.kernel_dtbs = data.get("KERNEL_DEVICETREE","").split(' ')
+            self.kernel_dtbs = data.get("KERNEL_DEVICETREE","").split()
             self.distro_features = data['DISTRO_FEATURES']
 
         if (self.args.load_dtbo or self.args.unload_dtbo) and 'secure-boot' in self.distro_features:
@@ -267,6 +267,9 @@ class YoctoImage:
         env.update_env_list(self.args.uboot_env_set)
 
         if len(self.kernel_dtbo_autoload) > 0:
+            if not self.kernel_dtbs:
+                raise ValueError("KERNEL_DEVICETREE is empty, "
+                                 "cannot generate boot_conf for DTBO autoload")
             boot_conf = f"#conf-{self.kernel_dtbs[0].replace('/', '_')}"
             list_dtbo = ""
             for dtbo in self.kernel_dtbo_autoload:
