@@ -64,7 +64,7 @@ def add_bootstrap_group(parser):
              '(default: auth_sv5.auth)')
     group.add_argument('--daa', action="store_true",
         help="flash with DAA enabled")
-    group.add_argument('--bootstrap-addr', type=int, default=0x0,
+    group.add_argument('--bootstrap-addr', type=lambda num: int(num, 0), default=0x0,
         metavar='0x0',
         help='Address where the bootstrap binary will be loaded '
              '(default: 0x0)')
